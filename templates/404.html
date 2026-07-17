@@ -1,0 +1,17 @@
+{% extends "empty.html" %}
+{% set title = "Page Not Found - Brand" %}
+
+{% block body_start%}
+<body id="page-top">
+{% endblock %}
+{% block body_content%}  
+    <div class="container-fluid">
+        <div class="text-center mt-5">
+            <div class="mx-auto error" data-text="404">
+                <p class="m-0">404</p>
+            </div>
+            <p class="text-dark mb-5 lead">Page Not Found</p>
+            <p class="text-black-50 mb-0">It looks like you found a glitch in the matrix...</p><a href="/">← Back to Dashboard</a>
+        </div>
+    </div>
+{% endblock %}

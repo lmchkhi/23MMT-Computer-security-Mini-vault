@@ -1,0 +1,82 @@
+{% extends "empty.html" %}
+{% set title = "Register - Brand" %}
+
+{% block body_start%}
+<body class="bg-gradient-primary">
+{% endblock %}
+
+{% macro form_field(field) %}
+        {{ field(class="form-control form-control-user", placeholder=field.label.text) }}
+        {% if field.errors %}
+            <div class="position-relative">
+                {% for error in field.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+                
+            </div> 
+            
+        {% endif %}
+    
+{% endmacro %}
+
+{% block body_content%}
+    <div class="container">
+        <div class="card shadow-lg my-5 o-hidden border-0">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-lg-5 d-none d-lg-flex">
+                        <div class="flex-grow-1 bg-register-image" style="background-image: url(&quot{{ url_for('static', filename='assets/img/dogs/image2.jpeg') }}&quot);"></div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <h4 class="text-dark mb-4">Create an Account!</h4>
+                            </div>
+
+                            {% with messages = get_flashed_messages() %}
+                                {% if messages %}
+                                    <div class="alert alert-danger" role="alert">
+                                        {{ messages[0]}}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endif %}
+                            {% endwith%}
+
+                            <form class="user needs-validation" method="POST" novalidate >
+                                {{ form.csrf_token }}
+                                <div class="mb-3">
+                                    {{ form_field(form.username) }}
+                                </div>
+                                <div class="mb-3">
+                                    <!-- {{ form.email(class_="form-control form-control-user", placeholder=form.email.label.text) }}
+                                -->
+                                    {{ form_field(form.email) }}
+                                </div>
+                                <div class="mb-3 row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                        {{ form_field(form.password) }}
+                                    </div>
+                                    <div class="col-sm-6">
+                                        {{ form_field(form.confirm_password) }}
+                                    </div>
+                                </div>
+                                {{ form.submit(class_="btn btn-primary d-block w-100 btn-user") }}
+                                <!-- <button class="btn btn-primary d-block w-100 btn-user" type="submit">Register Account</button> -->
+                                <hr>
+                                <!-- <a class="btn btn-primary d-block w-100 mb-2 btn-google btn-user" role="button">
+                                    <i class="fab fa-google"></i>&nbsp; Register with Google
+                                </a>
+                                <a class="btn btn-primary d-block w-100 btn-facebook btn-user" role="button">
+                                    <i class="fab fa-facebook-f"></i>&nbsp; Register with Facebook
+                                </a>
+                                <hr>-->
+                            </form>
+                            <div class="text-center"><a class="small" href="/forgot-password">Forgot Password?</a></div>
+                            <div class="text-center"><a class="small" href="/login">Already have an account? Login!</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{%endblock%}
