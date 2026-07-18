@@ -1,0 +1,144 @@
+--- File: blank.html ---
+{% extends "empty.html" %}
+{% block body_start%}
+<body id="page-top">
+    <!-- The ID 'page-top' is often used in frameworks to make a smooth scroll effect -->
+{%endblock%}
+
+{%block body_content%}
+
+    <!-- Main wrapper div to structure the layout (sidebar and content) -->
+    <div id="wrapper">
+        <!-- Left Sidebar Navigation -->
+        <nav class="navbar align-items-start p-0 sidebar sidebar-dark accordion bg-gradient-primary navbar-dark">
+            <!-- Brand section displayed on the left side of the sidebar -->
+            <div class="container-fluid d-flex flex-column p-0">
+                <a class="navbar-brand d-flex justify-content-center align-items-center m-0 sidebar-brand" href="#">
+                    <!-- Icon for the brand -->
+                    <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-laugh-wink"></i></div>
+                    <!-- Text displaying the site/brand name -->
+                    <div class="mx-3 sidebar-brand-text"><span>Brand</span></div>
+                </a>
+                <hr class="my-0 sidebar-divider">
+                
+                <!-- Main navigation links (Dashboard, Profile, Table) -->
+                <ul class="navbar-nav text-light" id="accordionSidebar">
+                    <li class="nav-item"><a class="nav-link" href="/index"><svg></svg><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/profile"><svg></svg><span>Profile</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/table"><svg></svg><span>Table</span></a></li>
+                    <!-- Navigation items commented out for future use -->
+                    <!-- <li class="nav-item"><a class="nav-link" href="/login"><svg></svg><span>Login</span></a></li>
+                    <!-- <li class="nav-item"><a class="nav-link" href="/register"><svg></svg><span>Register</span></a></li>
+                    -->
+                </ul>
+                <!-- Button to toggle the sidebar visibility (usually for responsive designs) -->
+                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                <!-- Top Bar (Header) -->
+                <nav class="navbar navbar-expand bg-white shadow mb-4 topbar">
+                    
+                    <!-- Button to toggle the top bar (usually for mobile views) -->
+                    <div class="container-fluid">
+                        <button class="btn btn-link d-md-none me-3 rounded-circle" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+                            
+                        <!-- Search input and button (Hidden on large screens, shown on small/medium) -->
+                        <form class="d-none d-sm-inline-block mw-100 ms-md-3 me-auto my-2 my-md-0 navbar-search">
+                            <div class="input-group">
+                                <input class="bg-light form-control border-0 small" type="text" placeholder="Search for ...">
+                                <button class="btn btn-primary py-0" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Search result dropdown (Visible only on small screens) -->
+                        <ul class="navbar-nav flex-nowrap ms-auto">
+                            <!-- Trigger for search results dropdown -->
+                            <li class="nav-item dropdown d-sm-none no-arrow"><a class="dropdown-toggle nav-link" data-bs-toggle="dropdown" aria-expanded="false" href="#"><i class="fas fa-search"></i></a>
+                                <div class="dropdown-menu p-3 dropdown-menu-end animated--grow-in" aria-labelledby="searchDropdown">
+                                    <!-- Search input inside the dropdown -->
+                                    <form class="w-100 me-auto navbar-search">
+                                        <div class="input-group"><input class="bg-light border-0 form-control small" type="text" placeholder="Search for ..."><button class="btn btn-primary" type="button"><i class="fas fa-search"></i></button></div>
+                                    </form>
+                                </div>
+                            </li>
+                            
+                            <!-- Alerts/Notifications Dropdown -->
+                            <li class="nav-item mx-1 dropdown no-arrow">
+                                <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" data-bs-toggle="dropdown" aria-expanded="false" href="#"><span class="badge bg-danger badge-counter">3+</span><i class="fas fa-bell fa-fw"></i></a>
+                                    <div class="dropdown-menu dropdown-menu-end dropdown-list animated--grow-in">
+                                        <h6 class="dropdown-header">alerts center</h6>
+                                        <!-- Example Alert Item 1 -->
+                                        <a class="dropdown-item d-flex align-items-center" href="#">
+                                            <div class="me-3">
+                                                <div class="bg-primary icon-circle"><i class="fas fa-file-alt text-white"></i></div>
+                                            </div>
+                                            <div><span class="small text-gray-500">December 12, 2019</span><p>A new monthly report is ready to download!</p></div>
+                                        </a>
+                                        <!-- Example Alert Item 2 -->
+                                        <a class="dropdown-item d-flex align-items-center" href="#">
+                                            <div class="me-3">
+                                                <div class="bg-success icon-circle"><i class="fas fa-donate text-white"></i></div>
+                                            </div>
+                                            <div><span class="small text-gray-500">December 7, 2019</span><p>$290.29 has been deposited into your account!</p></div>
+                                        </a>
+                                        <!-- Example Alert Item 3 -->
+                                        <a class="dropdown-item d-flex align-items-center" href="#">
+                                            <div class="me-3">
+                                                <div class="bg-warning icon-circle"><i class="fas fa-exclamation-triangle text-white"></i></div>
+                                            </div>
+                                            <div><span class="small text-gray-500">December 2, 2019</span><p>Spending Alert: We've noticed unusually high spending for your account.</p></div>
+                                        </a>
+                                        <!-- Show All Alerts link -->
+                                        <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
+                                    </div>
+                                </div>
+                                <!-- Placeholder for shadow effect -->
+                                <div class="shadow dropdown-list dropdown-menu dropdown-menu-end" aria-labelledby="alertsDropdown"></div>
+                            </li>
+                            
+                            <!-- User Profile Dropdown (Visible only on large screens) -->
+                            <li class="nav-item mx-1 dropdown no-arrow">
+                                <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" data-bs-toggle="dropdown" aria-expanded="false" href="#"><span class="d-none d-lg-inline me-2 text-gray-600 small">Valerie Luna</span><img class="border rounded-circle img-profile" src="{{url_for('static', filename='assets/img/avatars/avatar1.jpeg')}}?h=0ecc82101fb9a10ca459432faa8c0656"></a>
+                                    <!-- Profile menu items -->
+                                    <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
+                                        <a class="dropdown-item" href="#"><i class="fas fa-user me-2 fa-sm fa-fw text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-cogs me-2 fa-sm fa-fw text-gray-400"></i>&nbsp;Settings</a>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-list me-2 fa-sm fa-fw text-gray-400"></i>&nbsp;Activity log</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2 fa-sm fa-fw text-gray-400"></i>&nbsp;Logout</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                
+                <!-- Main content display area -->
+                <div class="container-fluid">
+                    {% block content %} {%endblock%}
+                </div>
+            </div>
+            
+            <!-- Footer Section -->
+            <footer class="bg-white sticky-footer">
+                <div class="container my-auto">
+                    <div class="text-center my-auto copyright"><span class="text-center">Copyright &copy; Brand 2026</span></div>
+                </div>
+            </footer>
+        </div>
+
+        <!-- Scroll to Top Button -->
+        <a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    </div>
+
+{%endblock%}
+
+{% block body_end%}
+</body>
+{%endblock%}
