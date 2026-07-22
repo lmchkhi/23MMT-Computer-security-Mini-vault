@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
 
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, ValidationError, IntegerField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
+from src.storage import User
+
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[
@@ -24,6 +26,11 @@ class RegistrationForm(FlaskForm):
         EqualTo('password', "Confirm password does not match Password")
     ])
     
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email).first()
+        if user:
+            raise ValidationError("Email have been taken please use another")
+    
     submit = SubmitField("Sign up")
 
 class LoginForm(FlaskForm):
@@ -40,3 +47,9 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField("Remember me")
     
     submit = SubmitField("Log in")
+    
+class TFForm(FlaskForm):
+    tf_code = IntegerField("OTP code", validators=[
+        DataRequired('Code is required')
+        ])
+    submit = SubmitField("Submit")
