@@ -11,11 +11,7 @@ from src.auth.decorators import require_auth
 
 
 def create_app(test_config: dict[str, Any] | None = None) -> Flask:
-    """Create a standalone Flask app for Feature 0.2.
-
-    Other branches do not need to use this factory. They can import and call
-    ``init_auth(existing_app)`` on their own Flask application instead.
-    """
+    """Import and call ``init_auth(existing_app)`` on other Flask application when merging."""
     app = Flask(__name__)
 
     default_db = Path(os.getenv("MINI_VAULT_DB", "data/minivault.db"))
@@ -38,7 +34,6 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     @app.get("/api/protected-example")
     @require_auth
     def protected_example() -> tuple[dict[str, object], int]:
-        """Example showing how Feature 1 and Feature 2 should require auth."""
         from flask import g
 
         return {
