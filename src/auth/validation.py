@@ -28,12 +28,15 @@ def validate_passphrase(passphrase: object) -> list[str]:
     errors: list[str] = []
     if len(passphrase) < 12:
         errors.append("Passphrase must contain at least 12 characters")
-    if not any(char.islower() for char in passphrase):
+    if not any(character.islower() for character in passphrase):
         errors.append("Passphrase must contain a lowercase letter")
-    if not any(char.isupper() for char in passphrase):
+    if not any(character.isupper() for character in passphrase):
         errors.append("Passphrase must contain an uppercase letter")
-    if not any(char.isdigit() for char in passphrase):
+    if not any(character.isdigit() for character in passphrase):
         errors.append("Passphrase must contain a number")
-    if not any(not char.isalnum() and not char.isspace() for char in passphrase):
+    if not any(
+        not character.isalnum() and not character.isspace()
+        for character in passphrase
+    ):
         errors.append("Passphrase must contain a special character")
     return errors

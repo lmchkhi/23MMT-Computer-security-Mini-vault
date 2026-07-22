@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from flask import Blueprint, g, request
 
-from .db import get_db
 from .decorators import require_auth
 from .errors import AuthError
 from .service import login_user, now_timestamp, register_user, revoke_session
 
-auth_bp = Blueprint("auth", __name__)
+auth_api_bp = Blueprint("auth_api", __name__)
 
 
 def _json_body() -> dict[str, object]:
@@ -17,28 +16,25 @@ def _json_body() -> dict[str, object]:
     return body
 
 
-@auth_bp.post("/register")
+@auth_api_bp.post("/register")
 def register():
     try:
         body = _json_body()
         user = register_user(
-            get_db(),
             email=body.get("email"),
             passphrase=body.get("passphrase"),
             confirm_passphrase=body.get("confirm_passphrase"),
         )
     except AuthError as exc:
         return exc.to_response()
-
     return {"user": user}, 201
 
 
-@auth_bp.post("/login")
+@auth_api_bp.post("/login")
 def login():
     try:
         body = _json_body()
         result = login_user(
-            get_db(),
             email=body.get("email"),
             passphrase=body.get("passphrase"),
         )
@@ -48,20 +44,23 @@ def login():
     return {
         "token": result.token,
         "token_type": "Bearer",
-        "expires_in": int(result.expires_at - now_timestamp()),
+        "expires_in": result.expires_at - now_timestamp(),
         "expires_at": result.expires_at,
         "user": result.user,
     }, 200
 
 
-@auth_bp.get("/me")
+@auth_api_bp.get("/me")
 @require_auth
 def me():
-    return {"user": g.current_user}, 200
+    return {
+        "user": g.current_user,
+        "expires_at": g.session_expires_at,
+    }, 200
 
 
-@auth_bp.post("/logout")
+@auth_api_bp.post("/logout")
 @require_auth
 def logout():
-    revoke_session(get_db(), g.session_token_hash)
+    revoke_session(g.session_token_hash)
     return {"message": "Logged out"}, 200
