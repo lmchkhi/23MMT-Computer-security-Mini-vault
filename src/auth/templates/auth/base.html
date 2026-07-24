@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>{% block title %}Mini Vault{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('auth_web.static', filename='vendor/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('auth_web.static', filename='auth/auth.css') }}">
+</head>
+<body>
+<main class="auth-shell">
+    <div class="container py-4 py-lg-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-stack" aria-live="polite">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} shadow-sm" role="alert">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+</main>
+<script src="{{ url_for('auth_web.static', filename='vendor/bootstrap/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('auth_web.static', filename='auth/auth.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{% extends "auth/base.html" %}
+{% block title %}Log in · Mini Vault{% endblock %}
+{% block content %}
+<div class="auth-card card border-0 shadow-lg overflow-hidden mx-auto">
+    <div class="row g-0">
+        <section class="col-lg-5 auth-hero d-none d-lg-flex" aria-label="Mini Vault security summary">
+            <div>
+                <a class="brand-mark text-decoration-none" href="{{ url_for('auth_web.login') }}">
+                    <span class="brand-icon" aria-hidden="true">MV</span>
+                    <span>Mini Vault</span>
+                </a>
+                <h1>Welcome back.</h1>
+                <p>Your session is short-lived, your passphrase is never stored, and protected APIs reject expired tokens.</p>
+                <div class="security-points">
+                    <span>Argon2id password hashing</span>
+                    <span>30-minute opaque session</span>
+                    <span>5-attempt lockout</span>
+                </div>
+            </div>
+        </section>
+        <section class="col-lg-7 auth-panel">
+            <div class="auth-panel-inner">
+                <div class="d-lg-none mb-4">
+                    <span class="brand-mark"><span class="brand-icon">MV</span><span>Mini Vault</span></span>
+                </div>
+                <p class="eyebrow">Feature 0.2 · User authentication</p>
+                <h2>Log in to your vault</h2>
+                <p class="text-secondary mb-4">Enter the email and passphrase used during registration.</p>
+
+                {% if lockout_seconds %}
+                    <div class="alert alert-danger lockout-alert" data-lockout-seconds="{{ lockout_seconds }}" role="alert">
+                        Account locked. Try again in <strong data-lockout-label>{{ lockout_seconds }} seconds</strong>.
+                    </div>
+                {% endif %}
+
+                <form method="post" novalidate data-auth-form>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control form-control-lg" + (" is-invalid" if form.email.errors else ""), autocomplete="email", placeholder="alice@example.com") }}
+                        {% with field=form.email %}{% include "auth/_field_errors.html" %}{% endwith %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.passphrase.label(class="form-label") }}
+                        <div class="password-wrap">
+                            {{ form.passphrase(class="form-control form-control-lg" + (" is-invalid" if form.passphrase.errors else ""), autocomplete="current-password", placeholder="Your passphrase", data_password_input="") }}
+                            <button class="password-toggle" type="button" data-password-toggle aria-label="Show passphrase">Show</button>
+                        </div>
+                        {% with field=form.passphrase %}{% include "auth/_field_errors.html" %}{% endwith %}
+                    </div>
+                    {{ form.submit(class="btn btn-primary btn-lg w-100", data_submit_button="") }}
+                </form>
+
+                <p class="auth-switch mb-0">No account yet? <a href="{{ url_for('auth_web.register') }}">Create one</a></p>
+                <p class="scope-note mb-0">Password recovery and MFA are intentionally excluded from mandatory section 0.2.</p>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
