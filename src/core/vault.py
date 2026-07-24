@@ -92,3 +92,5 @@ class MiniVaultCore:
         except Exception:
             # Bắt lỗi chung chung để không tiết lộ chi tiết nếu sai mật khẩu hoặc file bị can thiệp
             raise ValueError("Lỗi: Không thể mở khóa Vault (Sai Master Passphrase hoặc dữ liệu bị hỏng).")
+        
+vault_obj = MiniVaultCore()

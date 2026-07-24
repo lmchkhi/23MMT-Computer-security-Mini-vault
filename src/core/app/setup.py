@@ -36,9 +36,11 @@ def create_app(config: Config | None=None) -> Flask:
     # Blueprints
     from src.auth import auth_bp
     from src.main import main_bf
+    from src.core.vault_admin import admin_vault_bf
     # Register other blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bf)
+    app.register_blueprint(admin_vault_bf, url_prefix='/admin')
     
     # Connecting other extension to app
     db.init_app(app)
