@@ -1,18 +1,26 @@
-from flask import Blueprint, render_template, request, url_for, redirect, flash, make_response, current_app
-from flask_login import login_user, logout_user, login_required, current_user
-from flask_bcrypt import check_password_hash
-from src.auth.form import RegistrationForm, LoginForm, TFForm
-from src.storage import User
-from src.core.app import login_manager
 import uuid
 import datetime
-from src.core.app import db
-from urllib.parse import urlparse, urljoin
-from pyotp import TOTP, parse_uri, random_base32
-from markupsafe import escape
 import io
 import pyqrcode
 import jwt
+import base64
+
+from urllib.parse import urlparse, urljoin
+from pyotp import TOTP, parse_uri, random_base32
+from markupsafe import escape
+
+from cryptography.fernet import Fernet, InvalidToken
+
+
+from flask import Blueprint, render_template, request, url_for, redirect, flash, make_response, current_app
+from flask_login import login_user, logout_user, login_required, current_user
+from flask_bcrypt import check_password_hash
+
+from src.auth.form import RegistrationForm, LoginForm, TFForm
+from src.storage import User
+from src.core.app import login_manager
+from src.core.app import db
+from src.core import vault_obj
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -55,7 +63,7 @@ def register_tf():
     else:
         # Take the previously generated value from cookie
         jwt_obj = request.cookies.get('code','')
-        print(jwt_obj)
+        
         try:
             claims = jwt.decode(jwt_obj,
                        current_app.config.get('SECRET_KEY') or 'secret123!',
@@ -85,14 +93,20 @@ def register_tf():
     
     # Validating form input
     form = TFForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit() and not vault_obj.is_locked:
+        print("here")
         code = form.tf_code.data
         if time_OTP.verify(str(code)): #type: ignore
-            current_user.otp_uri = time_link
+            fernet_enc = Fernet(base64.urlsafe_b64encode(vault_obj.dek)) #type: ignore
+            encrypted_link = fernet_enc.encrypt(time_link.encode('utf-8'))
+            current_user.otp_uri = encrypted_link.decode('utf-8')
             current_user.required_login_step += ',tf-otp'
+            
             db.session.add(current_user)
             db.session.commit()
-            return redirect(url_for('main.index'))
+            response = redirect(url_for("main.index"))
+            response.delete_cookie('code')
+            return response
         else:
             error_list = list(form.tf_code.errors)
             error_list.append("Invalid code")
@@ -196,11 +210,18 @@ def tf_login():
         return redirect(url_for('auth.login'))
     
     form = TFForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit() and not vault_obj.is_locked:
         user = User.query.filter_by(email=user_email).first()
+        otp_uri = None
         if user and check_for_tf(user):
-            totp = parse_uri(user.otp_uri)
-
+            fernet_dec = Fernet(base64.urlsafe_b64encode(vault_obj.dek)) #type: ignore
+            try:
+                otp_uri = fernet_dec.decrypt(user.otp_uri).decode()
+            except InvalidToken:
+                pass
+        
+        if otp_uri:
+            totp = parse_uri(otp_uri)
             if totp and totp.verify(str(form.tf_code.data)): # type: ignore
                 
                 # Validate next parameter
