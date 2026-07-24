@@ -81,7 +81,7 @@ def register_tf():
                            algorithms=["HS256"],
                            audience=current_user.email,
                            issuer="mini-vault-project")
-        except (jwt.ExpiredSignatureError, jwt.DecodeError):
+        except jwt.DecodeError:
             claims = None
         if claims:
             time_OTP = parse_uri(str(claims.get('link')))
@@ -180,11 +180,23 @@ def login():
             
             if check_for_tf(corresponding_user): # redirect user to two factor page
                 response = redirect(url_for("auth.tf_login", next=next_url or ''))
-                
                 # Setting cookie value to allow the next phase to identify user
                 timeout = 3
-                response.set_cookie('email',
-                                    corresponding_user.email, # TODO: need to change to jwt token with timeout to make sure user is we sent
+                jwt_obj = jwt.encode(
+                    {
+                        "iss": "mini-vault-project",
+                        "exp": datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=timeout),
+                        "nbf": datetime.datetime.now(tz=datetime.timezone.utc),
+                        'email': email,
+                        "iat": datetime.datetime.now(tz=datetime.timezone.utc),
+                        "sub": "tf-user",
+                    },
+                    current_app.config['SECRET_KEY'] or 'sercret123!',
+                    algorithm='HS256'
+                    )
+                
+                response.set_cookie('otp-login-token',
+                                    jwt_obj, # TODO: need to change to jwt token with timeout to make sure user is we sent
                                     datetime.timedelta(minutes=timeout), # max age
                                     datetime.datetime.now() + datetime.timedelta(minutes=timeout) # expire time
                                     )
@@ -204,14 +216,31 @@ def login():
 @auth_bp.route("/tf-login",methods=["GET","POST"])
 def tf_login():
     
-    user_email = request.cookies.get("email")
+    token = request.cookies.get("otp-login-token")
     # There is no user email 
-    if user_email is None:
+
+    if token is None:
         return redirect(url_for('auth.login'))
+    try:
+        jwt_obj = jwt.decode(
+            token, 
+            current_app.config.get("SECRET_KEY", "secret123!"),
+            issuer='mini-vault-project',
+            subject='tf-user',
+            algorithms=['HS256']
+            )
+    except jwt.DecodeError as e:
+        response = redirect(url_for('auth.login'))
+        response.delete_cookie('otp-login-token')
+        flash('OTP session has expired', 'danger')
+        return response
     
+    user_email = jwt_obj.get('email')
+
     form = TFForm()
     if form.validate_on_submit() and not vault_obj.is_locked:
         user = User.query.filter_by(email=user_email).first()
+        
         otp_uri = None
         if user and check_for_tf(user):
             fernet_dec = Fernet(base64.urlsafe_b64encode(vault_obj.dek)) #type: ignore
@@ -219,6 +248,7 @@ def tf_login():
                 otp_uri = fernet_dec.decrypt(user.otp_uri).decode()
             except InvalidToken:
                 pass
+        
         
         if otp_uri:
             totp = parse_uri(otp_uri)
@@ -236,7 +266,8 @@ def tf_login():
                 response.delete_cookie('email')
                 return response
         flash("Invalid TOTP", category='danger')
-        
+    if vault_obj.is_locked:
+        flash("Vault is lock. Please contact admin to unlock vault", "warning")   
     return render_template("tf-login.html",form=form)
 
 @auth_bp.route("/logout")
