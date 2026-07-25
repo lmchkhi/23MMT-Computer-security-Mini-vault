@@ -140,7 +140,7 @@ def login():
             return response
         
         if error_mes and error_mes.code == "ACCOUNT_LOCKED":
-            flash(f"You have enter the passpharse wrong 5 time, please wait for ({error_mes.details.get("retry_after_seconds", '-1')} seconds to login again)",
+            flash(f"You have enter the passpharse wrong 5 time, please wait for {error_mes.details.get("retry_after_seconds", '-1')} seconds to login again",
                     category="danger")
         else:
             flash("Username or password is wrong", category="text-danger")

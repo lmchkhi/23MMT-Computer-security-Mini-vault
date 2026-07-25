@@ -45,11 +45,6 @@ def create_app(config=None) -> Flask:
     # Connecting other extension to app
     db.init_app(app)
     csrf.init_app(app)
-    
-    # The JSON API does not use browser cookies. Bearer tokens protect private
-    # endpoints, so Flask-WTF CSRF remains enabled only for server-rendered forms.
-    from src.auth.route import auth_api_bp 
-    csrf.exempt(auth_api_bp)
 
     return app
 

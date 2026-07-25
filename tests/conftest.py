@@ -2,27 +2,33 @@ from __future__ import annotations
 
 import pytest
 
-from src.app import create_app
-from src.extensions import db
-
+from src.app import create_app, db
+from src.app.config import DefaultConfig
 
 @pytest.fixture()
 def clock():
     return {"now": 1_700_000_000}
 
 
+    
 @pytest.fixture()
 def app(tmp_path, clock):
     database = tmp_path / "test.db"
+    class TestConfig(DefaultConfig):
+        TESTING = True
+        WTF_CSRF_ENABLED = False
+        SQLALCHEMY_DATABASE_URI = f"sqlite:///{database.as_posix()}"
+        AUTH_CLOCK = lambda: clock["now"]
+        AUTH_COOKIE_SECURE = False
+        SQLALCHEMY_RECORD_QUERIES= True
+        SQLALCHEMY_ECHO = True
+    
     application = create_app(
-        {
-            "TESTING": True,
-            "WTF_CSRF_ENABLED": False,
-            "SQLALCHEMY_DATABASE_URI": f"sqlite:///{database.as_posix()}",
-            "AUTH_CLOCK": lambda: clock["now"],
-            "AUTH_COOKIE_SECURE": False,
-        }
+        TestConfig
     )
+    with application.app_context():
+        db.create_all()
+        
     yield application
     with application.app_context():
         db.session.remove()
