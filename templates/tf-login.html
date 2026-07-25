@@ -1,0 +1,58 @@
+{% extends "empty.html" %}
+{% set title = "Login" %}
+
+{% block body_start%}
+<body class="bg-gradient-primary">
+{%endblock%}
+
+{% block body_content %}
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-9 col-lg-12 col-xl-10">
+                <div class="card shadow-lg my-5 o-hidden border-0">
+                    <div class="card-body p-0">
+                        <div class="row">
+                            
+                            <div class="col">
+                                {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    <div class="alert alert-{{ messages[0][0]}}" role="alert">
+                                        <center>
+                                            {{ messages[0][1]}}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </center>
+                                    </div>
+                                {% endif %}
+                                {% endwith%}
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <h4 class="text-dark mb-4">OTP check</h4>
+                                    </div>
+                                    <form class="user" method="POST">
+                                        {{form.hidden_tag()}}
+                                        
+                                        {{ form.tf_code(class="form-control form-control-user", placeholder="Enter 6-digit code") }}
+                                        {{ form.submit(class="btn btn-primary d-block w-100 btn-user") }}
+                                        <hr>
+                                        <!--
+                                        <a class="btn btn-primary d-block w-100 mb-2 btn-google btn-user" role="button">
+                                            <i class="fab fa-google"></i>&nbsp; Login with Google</a>
+                                            <a class="btn btn-primary d-block w-100 btn-facebook btn-user" role="button">
+                                                <i class="fab fa-facebook-f"></i>&nbsp; Login with Facebook</a>
+                                        <hr>
+                                        -->
+                                    </form>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{%endblock%}
+{% block body_end%}
+</body>
+{%endblock%}

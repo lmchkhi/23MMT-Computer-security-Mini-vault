@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from sqlalchemy import select
 
-from src.auth.models import User
-from src.extensions import db
+from src.storage import User
+from src.app import db
 from tests.conftest import register_api
 
 

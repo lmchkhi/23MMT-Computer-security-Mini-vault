@@ -1,1 +1,1 @@
-from .vault import MiniVaultCore
+from .vault import MiniVaultCore, vault_obj
