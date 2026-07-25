@@ -19,12 +19,14 @@
                             <div class="col-lg-6">
                                 {% with messages = get_flashed_messages(with_categories=true) %}
                                 {% if messages %}
-                                    <div class="alert alert-{{ messages[0][0]}}" role="alert">
+                                    {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }}" role="alert">
                                         <center>
-                                            {{ messages[0][1]}}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            {{ message }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                         </center>
                                     </div>
+                                    {% endfor %}
                                 {% endif %}
                                 {% endwith%}
                                 <div class="p-5">
@@ -39,18 +41,10 @@
                                         </div>
                                         <div class="mb-3">
                                             <!--<input class="form-control form-control-user" type="password" id="exampleInputPassword" placeholder="Password" name="password">-->
-                                            {{ form.password(class="form-control form-control-user", placeholder="Password") }}
+                                            {{ form.passphrase(class="form-control form-control-user", placeholder="Password") }}
                                         </div>
                                         
-                                        <div class="mb-3">
-                                            <div class="custom-checkbox small">
-                                                <div class="form-check">
-                                                    {{form.remember_me(class="form-check-input")}}
-                                                    {{form.remember_me.label(class="form-check-label")}}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- <button class="btn btn-primary d-block w-100 btn-user" type="submit">Login</button>-->
+
                                         {{ form.submit(class="btn btn-primary d-block w-100 btn-user") }}
                                         <hr>
                                         <!--
@@ -61,7 +55,7 @@
                                         <hr>
                                         -->
                                     </form>
-                                    <div class="text-center"><a class="small" href="#">Forgot Password?</a></div>
+                                    <!-- <div class="text-center"><a class="small" href="#">Forgot Password?</a></div> -->
                                     <div class="text-center"><a class="small" href="{{url_for("auth.register")}}">Create an Account!</a></div>
                                 </div>
                             </div>

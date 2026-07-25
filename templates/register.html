@@ -5,17 +5,21 @@
 <body class="bg-gradient-primary">
 {% endblock %}
 
+{% block head_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth/auth.css') }}">
+{% endblock %}
+
+{% macro get_error(field) %}
+    {% if field.errors %}
+        {% for error in field.errors %}
+            <small class="text-danger">{{ error }}</small>
+        {% endfor %}
+    {% endif %}
+{% endmacro %}
+
 {% macro form_field(field) %}
         {{ field(class="form-control form-control-user", placeholder=field.label.text) }}
-        {% if field.errors %}
-            <div class="position-relative">
-                {% for error in field.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                {% endfor %}
-                
-            </div> 
-            
-        {% endif %}
+        {{ get_error(field) }}
     
 {% endmacro %}
 
@@ -45,21 +49,38 @@
                             <form class="user needs-validation" method="POST" novalidate >
                                 {{ form.csrf_token }}
                                 <div class="mb-3">
-                                    {{ form_field(form.username) }}
-                                </div>
-                                <div class="mb-3">
                                     <!-- {{ form.email(class_="form-control form-control-user", placeholder=form.email.label.text) }}
                                 -->
-                                    {{ form_field(form.email) }}
+                                    {{ form.email.label(class="form-label") }}
+                                    {{ form.email(class="form-control form-control-lg" + (" is-invalid" if form.email.errors else ""), autocomplete="email", placeholder="alice@example.com") }}
+                                    {{ get_error(form.email) }}
+                                    
                                 </div>
                                 <div class="mb-3 row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        {{ form_field(form.password) }}
+                                        {{ form.passphrase.label(class="form-label") }}
+                                        <div class="password-wrap">
+                                            {{ form.passphrase(class="form-control form-control-lg" + (" is-invalid" if form.passphrase.errors else ""), autocomplete="new-password", placeholder="At least 12 characters", data_password_input="", data_strength_source="") }}
+                                            <button class="password-toggle" type="button" data-password-toggle aria-label="Show passphrase">Show</button>
+                                        </div>
+                                        {{ get_error(form.passphrase) }}
                                     </div>
                                     <div class="col-sm-6">
-                                        {{ form_field(form.confirm_password) }}
+                                        {{ form.confirm_passphrase.label(class="form-label") }}
+                                        <div class="password-wrap">
+                                            {{ form.confirm_passphrase(class="form-control form-control-lg" + (" is-invalid" if form.confirm_passphrase.errors else ""), autocomplete="new-password", placeholder="Repeat the passphrase", data_password_input="") }}
+                                            <button class="password-toggle" type="button" data-password-toggle aria-label="Show passphrase">Show</button>
+                                        </div>
+                                        {{ get_error(form.confirm_passphrase) }}
                                     </div>
                                 </div>
+                                <ul class="passphrase-rules" aria-live="polite">
+                                    <li data-rule="length">At least 12 characters</li>
+                                    <li data-rule="lower">One lowercase letter</li>
+                                    <li data-rule="upper">One uppercase letter</li>
+                                    <li data-rule="number">One number</li>
+                                    <li data-rule="special">One special character</li>
+                                </ul>
                                 {{ form.submit(class_="btn btn-primary d-block w-100 btn-user") }}
                                 <!-- <button class="btn btn-primary d-block w-100 btn-user" type="submit">Register Account</button> -->
                                 <hr>
@@ -71,7 +92,7 @@
                                 </a>
                                 <hr>-->
                             </form>
-                            <div class="text-center"><a class="small" href="/forgot-password">Forgot Password?</a></div>
+                            <!-- <div class="text-center"><a class="small" href="/forgot-password">Forgot Password?</a></div>-->
                             <div class="text-center"><a class="small" href="/login">Already have an account? Login!</a></div>
                         </div>
                     </div>
@@ -80,3 +101,7 @@
         </div>
     </div>
 {%endblock%}
+
+{% block body_scripts %}
+<script src="{{ url_for('static', filename='auth/auth.js') }}"> </script>
+{% endblock %}

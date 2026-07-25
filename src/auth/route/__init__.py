@@ -82,8 +82,9 @@ def register():
             flash("Account created. You can log in now.", "success")
             return redirect(url_for("auth.login"))
         except AuthError as e:
-            if e.code == "VALIDATION_ERROR":
-                _append_field_errors(form, e)
+            # if e.code == "VALIDATION_ERROR":
+            #     _append_field_errors(form, e)
+            pass
 
     return render_template("register.html", form=form)
 

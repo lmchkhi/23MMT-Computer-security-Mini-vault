@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, ValidationError, IntegerField, EmailField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from src.storage import User
-
+from src.auth.utils.validation import validate_passphrase
 
 class RegistrationForm(FlaskForm):
     email = EmailField(
@@ -27,6 +27,16 @@ class RegistrationForm(FlaskForm):
             ),
         ],
     )
+    
+    def validate_passphrase(self, passphrase):
+        if validate_passphrase(passphrase=passphrase.data):
+            raise ValidationError("Invalid passphrase")
+    
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data)
+        if user:
+            raise ValidationError("Email has been taken please use another email")
+        
     submit = SubmitField("Create account")
 
 
@@ -45,49 +55,6 @@ class LoginForm(FlaskForm):
     )
     submit = SubmitField("Log in")
 
-# class RegistrationForm(FlaskForm):
-#     username = StringField('Username', validators=[
-#         DataRequired("Username is required"),
-#         Length(3, 10, "Username must be %(min)d and %(max)d"),
-#         ])
-    
-#     email = StringField("Email", validators=[
-#         DataRequired("Email is required"),
-#         Email("Email is invalid")
-#         ])
-    
-#     password = PasswordField("Password", validators=[
-#         DataRequired("Password is required"), 
-#         Length(8,-1, "Password should be at least %(min)d")
-#         ])
-    
-#     confirm_password = PasswordField("Confirm password", validators=[
-#         DataRequired("Confirm password is required"),
-#         EqualTo('password', "Confirm password does not match Password")
-#     ])
-    
-#     def validate_email(self, email):
-#         user = User.query.filter_by(email=email).first()
-#         if user:
-#             raise ValidationError("Email have been taken please use another")
-    
-#     submit = SubmitField("Sign up")
-
-# class LoginForm(FlaskForm):
-#     email = StringField("Email", validators=[
-#         DataRequired("Email is required"),
-#         Email("Email is invalid")
-#         ])
-    
-#     password = PasswordField("Password", validators=[
-#         DataRequired("Password is required"), 
-#         Length(8,-1, "Password should be at least %(min)d")
-#         ])
-    
-#     remember_me = BooleanField("Remember me")
-    
-#     submit = SubmitField("Log in")
-    
 class TFForm(FlaskForm):
     tf_code = IntegerField("OTP code", validators=[
         DataRequired('Code is required')
