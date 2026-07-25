@@ -1,4 +1,4 @@
-from src.core.app import db
+from src.app import db
 from sqlalchemy import String
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship

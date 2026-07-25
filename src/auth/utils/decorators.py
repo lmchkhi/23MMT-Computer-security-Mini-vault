@@ -56,10 +56,10 @@ def require_browser_auth(view: F) -> F:
                 flash("Your session expired. Log in again.", "warning")
             elif raw_token:
                 flash("Your session is no longer valid. Log in again.", "warning")
-
+            
             next_path = request.full_path if request.query_string else request.path
             response = redirect(
-                url_for("auth_web.login", next=next_path)
+                url_for("auth.login", next=next_path)
             )
             response.delete_cookie(cookie_name, path="/")
             return response

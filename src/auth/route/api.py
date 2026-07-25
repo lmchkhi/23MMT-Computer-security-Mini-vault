@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from flask import Blueprint, g, request
 
-from .decorators import require_auth
-from .errors import AuthError
-from .service import login_user, now_timestamp, register_user, revoke_session
+from src.auth.utils.decorators import require_auth
+from src.auth.utils.errors import AuthError
+from src.auth.utils.service import login_user, now_timestamp, register_user, revoke_session, check_password
 
 auth_api_bp = Blueprint("auth_api", __name__)
 
@@ -34,10 +34,12 @@ def register():
 def login():
     try:
         body = _json_body()
-        result = login_user(
-            email=body.get("email"),
-            passphrase=body.get("passphrase"),
-        )
+        
+        user = check_password(
+                email=body.get("email"),
+                passphrase=body.get("passphrase")
+            )
+        result = login_user(user = user)
     except AuthError as exc:
         return exc.to_response()
 

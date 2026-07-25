@@ -1,8 +1,8 @@
 from flask_security.utils import hash_password
-from src.core.app import create_app, db
+from src.app import create_app, db
 from flask_bcrypt import generate_password_hash
 from . import User, Role
-
+from src.auth.utils import register_user
 
 def init_database():
     # This should only be run when database is deleted or is first init
@@ -23,17 +23,22 @@ def init_database():
             
         if not User.query.filter_by(email='admin@admin.vn').first():
             # type is ignore because pylance does not recongize the attribute
-            user1 = User(username="admin", email="admin@admin.vn", password=generate_password_hash('12345678').decode()) #type: ignore
-            user1.roles = [Role.query.filter_by(name="admin").first()] #type: ignore
-            db.session.add(user1)
-            db.session.commit()
+            # user1 = User(email="admin@admin.vn", password=generate_password_hash('12345678').decode(),
+            #              created_at=date) #type: ignore
+            # user1.roles = [Role.query.filter_by(name="admin").first()] #type: ignore
+            # db.session.add(user1)
+            # db.session.commit()
+            password='Abcde12345!!'
+            register_user(email = 'admin@admin.vn', passphrase=password, confirm_passphrase=password)
         
         if not User.query.filter_by(email='user1@user.vn').first():
             # type is ignore because pylance does not recongize the attribute
-            user1 = User(username="user1", email="user1@user.vn", password=generate_password_hash('12345678').decode()) #type: ignore
-            user1.roles = [Role.query.filter_by(name="user").first()] #type: ignore
-            db.session.add(user1)
-            db.session.commit()
+            # user1 = User(email="user1@user.vn", password=generate_password_hash('12345678').decode()) #type: ignore
+            # user1.roles = [Role.query.filter_by(name="user").first()] #type: ignore
+            # db.session.add(user1)
+            # db.session.commit()
+            password='Abcde12345!!'
+            register_user(email = 'user1@user.vn', passphrase=password, confirm_passphrase=password)
             
 def drop_database():
     # This should only be run after database created and need reset

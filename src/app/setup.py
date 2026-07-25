@@ -1,21 +1,19 @@
 import os
 from flask import Flask
+from sqlalchemy.orm import DeclarativeBase
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
-from flask_login import LoginManager
-from flask_bcrypt import Bcrypt
+
 # Configs
-from .config import DefaultConfig, Config
+from .config import DefaultConfig
+
+class Base(DeclarativeBase):
+    pass
 
 csrf = CSRFProtect()
-db = SQLAlchemy()
+db = SQLAlchemy(model_class=Base)
 
-login_manager = LoginManager()
-bcrypt = Bcrypt()
-# Type is ignore as there is an attribute but pylance said isn't
-login_manager.login_view="auth.login" # type: ignore
-
-def create_app(config: Config | None=None) -> Flask:
+def create_app(config=None) -> Flask:
     app = Flask(__name__)
     
     # Loading default config if config is not selected
@@ -23,7 +21,6 @@ def create_app(config: Config | None=None) -> Flask:
         t_config = DefaultConfig
     else:
         t_config = config
-    
     # Appling config to app
     app.config.from_object(t_config)
     app.template_folder = t_config.TEMPLATE_FOLDER_LOCATION
@@ -42,11 +39,17 @@ def create_app(config: Config | None=None) -> Flask:
     app.register_blueprint(main_bf)
     app.register_blueprint(admin_vault_bf, url_prefix='/admin')
     
+    @app.get("/health")
+    def health() -> tuple[dict[str, str], int]:
+        return {"status": "ok", "feature": "0.2-user-auth"}, 200
     # Connecting other extension to app
     db.init_app(app)
     csrf.init_app(app)
-    login_manager.init_app(app)
-    bcrypt.init_app(app)
     
+    # The JSON API does not use browser cookies. Bearer tokens protect private
+    # endpoints, so Flask-WTF CSRF remains enabled only for server-rendered forms.
+    from src.auth.route import auth_api_bp 
+    csrf.exempt(auth_api_bp)
+
     return app
 

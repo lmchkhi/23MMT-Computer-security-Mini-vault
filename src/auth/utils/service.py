@@ -10,11 +10,10 @@ from argon2.exceptions import InvalidHashError, VerifyMismatchError
 from flask import current_app
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
-
-from src.extensions import db
+from src.app import db
 
 from .errors import AuthError
-from .models import AuthSession, User
+from src.storage import AuthSession, User
 from .validation import normalize_email, validate_email, validate_passphrase
 
 PASSWORD_HASHER = PasswordHasher()
@@ -51,12 +50,16 @@ def register_user(
     passphrase: object,
     confirm_passphrase: object,
 ) -> dict[str, object]:
+    
+    """
+    Check and Register a user to database
+    """
     normalized_email = normalize_email(email)
 
     field_errors: dict[str, list[str]] = {}
     email_errors = validate_email(normalized_email)
     passphrase_errors = validate_passphrase(passphrase)
-
+    
     if email_errors:
         field_errors["email"] = email_errors
     if passphrase_errors:
@@ -76,12 +79,12 @@ def register_user(
 
     timestamp = now_timestamp()
     user = User(
-        email=normalized_email,
-        password_hash=PASSWORD_HASHER.hash(passphrase),
-        failed_attempts=0,
-        lock_until=None,
-        created_at=timestamp,
-        updated_at=timestamp,
+        email=normalized_email, #type: ignore
+        password_hash=PASSWORD_HASHER.hash(passphrase),#type: ignore
+        failed_attempts=0,#type: ignore
+        lock_until=None,#type: ignore
+        created_at=timestamp,#type: ignore
+        updated_at=timestamp,#type: ignore
     )
 
     db.session.add(user)
@@ -100,8 +103,12 @@ def register_user(
         "created_at": user.created_at,
     }
 
-
-def login_user(*, email: object, passphrase: object) -> LoginResult:
+def check_password(*, email: object, passphrase: object) -> User:
+    """
+    This function check given crediental is correct
+    And also check if the user account has reach the retried limit or is locked
+    """
+    
     normalized_email = normalize_email(email)
     if not normalized_email or not isinstance(passphrase, str):
         raise AuthError(
@@ -111,8 +118,7 @@ def login_user(*, email: object, passphrase: object) -> LoginResult:
     now = now_timestamp()
     max_attempts = int(current_app.config["AUTH_MAX_FAILED_ATTEMPTS"])
     lockout_seconds = int(current_app.config["AUTH_LOCKOUT_SECONDS"])
-    token_ttl = int(current_app.config["AUTH_TOKEN_TTL_SECONDS"])
-
+    
     user = db.session.scalar(select(User).where(User.email == normalized_email))
     if user is None:
         raise AuthError("ACCOUNT_NOT_FOUND", "Account does not exist", 404)
@@ -159,10 +165,23 @@ def login_user(*, email: object, passphrase: object) -> LoginResult:
             401,
             {"remaining_attempts": remaining_attempts},
         )
-
+        
+    # Checking password need rehash if so then rehash
     if PASSWORD_HASHER.check_needs_rehash(user.password_hash):
         user.password_hash = PASSWORD_HASHER.hash(passphrase)
+    
+    return user
 
+def login_user(*, user: User) -> LoginResult:
+    """
+    Login user by creating an AuthSession
+    This function also clean up dead session
+    """
+    
+
+    now = now_timestamp()
+    token_ttl = int(current_app.config["AUTH_TOKEN_TTL_SECONDS"])
+    
     user.failed_attempts = 0
     user.lock_until = None
     user.updated_at = now
@@ -171,11 +190,11 @@ def login_user(*, email: object, passphrase: object) -> LoginResult:
     expires_at = now + token_ttl
     db.session.add(
         AuthSession(
-            token_hash=token_digest(raw_token),
-            user=user,
-            created_at=now,
-            expires_at=expires_at,
-            revoked_at=None,
+            token_hash=token_digest(raw_token),#type: ignore
+            user=user,#type: ignore
+            created_at=now,#type: ignore
+            expires_at=expires_at,#type: ignore
+            revoked_at=None,#type: ignore
         )
     )
 
@@ -196,6 +215,9 @@ def login_user(*, email: object, passphrase: object) -> LoginResult:
 
 
 def authenticate_token(raw_token: str) -> AuthContext:
+    """ 
+    Check if the input token is a valid authenticate token
+    """
     if not isinstance(raw_token, str) or not raw_token:
         raise AuthError("UNAUTHENTICATED", "Session token is invalid", 401)
 
@@ -223,6 +245,10 @@ def authenticate_token(raw_token: str) -> AuthContext:
 
 
 def revoke_session(token_hash: str) -> None:
+    """
+        Delete/revoke user session. If session does not exist then this does nothing (only query if session exist)
+    """
+    
     session = db.session.scalar(
         select(AuthSession).where(AuthSession.token_hash == token_hash)
     )
