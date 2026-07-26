@@ -1,6 +1,7 @@
 import json
 import os
 import base64
+import datetime
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from src.storage.models import KVSecret
 from src.storage.db import db
@@ -37,21 +38,23 @@ class KVEngine:
         
         # 4. Ghi đè hoặc Tạo mới trong Database
         secret = KVSecret.query.filter_by(path=path).first()
+        time_now = datetime.datetime.now()
         if secret:
             secret.nonce_b64 = nonce_b64
             secret.ciphertext_b64 = ciphertext_b64
             secret.tag_b64 = tag_b64
+            
         else:
             secret = KVSecret(
-                path=path,
-                nonce_b64=nonce_b64,
-                ciphertext_b64=ciphertext_b64,
-                tag_b64=tag_b64
+                path=path, #type: ignore
+                nonce_b64=nonce_b64, #type: ignore
+                ciphertext_b64=ciphertext_b64, #type: ignore
+                tag_b64=tag_b64 #type: ignore
             )
             db.session.add(secret)
             
         db.session.commit()
-        return {"created_at": secret.created_at, "updated_at": secret.updated_at}
+        return {"time_of_op":time_now}
 
     def read(self, path: str, token: str) -> dict:
         """Đọc và giải mã dữ liệu từ cơ sở dữ liệu"""

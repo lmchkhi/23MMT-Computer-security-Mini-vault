@@ -14,6 +14,6 @@ class KVSecret(db.Model):
     tag_b64 = db.Column(db.String(50), nullable=False)
     
     # Lưu thời gian tạo và cập nhật
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    # created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    # updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
