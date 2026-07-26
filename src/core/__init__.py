@@ -1,0 +1,1 @@
+from .vault import MiniVaultCore, vault_obj
