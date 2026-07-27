@@ -142,6 +142,7 @@ def account():
         user=g.current_user,
         expires_at=g.session_expires_at,
         logout_form=LogoutForm(),
+        active_page="account",
     )
 
 

@@ -41,7 +41,7 @@ def test_web_registration_login_account_and_logout(
     account = client.get("/auth/account")
     assert account.status_code == 200
     assert b"alice@example.com" in account.data
-    assert b"0.2 is ready" in account.data
+    assert b"Authenticated workspace" in account.data
 
     logged_out = client.post("/auth/logout", data={}, follow_redirects=True)
     assert logged_out.status_code == 200

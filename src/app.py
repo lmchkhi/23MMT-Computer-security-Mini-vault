@@ -9,6 +9,9 @@ from flask import Flask, redirect, request, url_for
 
 from src.auth import init_auth
 from src.extensions import csrf, db
+from src.kv import init_kv_access_control
+from src.transit import init_transit_encrypt_decrypt
+from src.workspace import init_workspace_ui
 
 load_dotenv()
 
@@ -21,11 +24,11 @@ def _env_bool(name: str, default: bool = False) -> bool:
 
 
 def create_app(test_config: dict[str, Any] | None = None) -> Flask:
-    """Create a small runnable shell for Feature 0.2.
+    """Create the merge-oriented Mini Vault Flask application.
 
-    In the final project, keep the team's existing app factory and only call
-    ``init_auth(app)`` after the shared ``db`` and ``csrf`` extensions have been
-    initialized.
+    All features share exactly one Flask-SQLAlchemy instance and one CSRF
+    extension. The blueprints remain isolated so they can be reviewed or moved
+    into the team's integration branch without rewriting authentication.
     """
 
     app = Flask(__name__, instance_relative_config=True)
@@ -43,6 +46,8 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         AUTH_MAX_FAILED_ATTEMPTS=5,
         AUTH_COOKIE_NAME="mini_vault_session",
         AUTH_COOKIE_SECURE=_env_bool("AUTH_COOKIE_SECURE", False),
+        ENABLE_TRANSIT_DEMO_KEY=_env_bool("ENABLE_TRANSIT_DEMO_KEY", False),
+        TRANSIT_MAX_PLAINTEXT_BYTES=1024 * 1024,
         WTF_CSRF_TIME_LIMIT=None,
     )
 
@@ -51,9 +56,14 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
 
     db.init_app(app)
     csrf.init_app(app)
-    init_auth(app)
 
-    # Importing auth models occurs inside init_auth, so create_all includes them.
+    # Register shared UI assets first, then feature blueprints.
+    init_workspace_ui(app)
+    init_auth(app)
+    init_kv_access_control(app)
+    init_transit_encrypt_decrypt(app)
+
+    # Importing feature models occurs inside the init functions.
     with app.app_context():
         db.create_all()
 
@@ -62,8 +72,11 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         return redirect(url_for("auth_web.account"))
 
     @app.get("/health")
-    def health() -> tuple[dict[str, str], int]:
-        return {"status": "ok", "feature": "0.2-user-auth"}, 200
+    def health() -> tuple[dict[str, object], int]:
+        return {
+            "status": "ok",
+            "features": ["0.2-user-auth", "1.2-kv-access-control", "2.2-transit"],
+        }, 200
 
     @app.errorhandler(404)
     def not_found(_: Exception):
