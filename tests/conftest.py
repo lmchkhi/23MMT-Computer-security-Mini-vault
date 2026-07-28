@@ -4,32 +4,39 @@ import os
 
 import pytest
 
-from src.app import create_app
-from src.extensions import db
 from src.transit.key_store import wrap_key_material
 from src.transit.models import TransitNamedKey
 
+from src.app import create_app, db
+from src.app.config import DefaultConfig
 
 @pytest.fixture()
 def clock():
     return {"now": 1_700_000_000}
 
 
+    
 @pytest.fixture()
 def app(tmp_path, clock):
     database = tmp_path / "test.db"
+    class TestConfig(DefaultConfig):
+        TESTING = True
+        WTF_CSRF_ENABLED = False
+        SQLALCHEMY_DATABASE_URI = f"sqlite:///{database.as_posix()}"
+        AUTH_CLOCK = lambda: clock["now"]
+        AUTH_COOKIE_SECURE = False
+        SQLALCHEMY_RECORD_QUERIES= True
+        SQLALCHEMY_ECHO = True
+        TEST_VAULT_DEK=  b"D" * 32
+        ENABLE_TRANSIT_DEMO_KEY = True
+        TRANSIT_CLOCK = lambda: clock["now"]
+        
     application = create_app(
-        {
-            "TESTING": True,
-            "WTF_CSRF_ENABLED": False,
-            "SQLALCHEMY_DATABASE_URI": f"sqlite:///{database.as_posix()}",
-            "AUTH_CLOCK": lambda: clock["now"],
-            "TRANSIT_CLOCK": lambda: clock["now"],
-            "AUTH_COOKIE_SECURE": False,
-            "TEST_VAULT_DEK": b"D" * 32,
-            "ENABLE_TRANSIT_DEMO_KEY": True,
-        }
+        TestConfig
     )
+    with application.app_context():
+        db.create_all()
+        
     yield application
     with application.app_context():
         db.session.remove()

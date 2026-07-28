@@ -1,0 +1,26 @@
+[project]
+name = "mini-vault-project"
+version = "0.1.0"
+description = "A mini vault to store secrets"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "argon2-cffi>=25.1,<26",
+    "cryptography>=49.0.0",
+    "dotenv>=0.9.9",
+    "email-validator>=2.2,<3",
+    "flask>=3.1,<4",
+    "flask-bcrypt>=1.0.1",
+    "flask-login>=0.6.3",
+    "flask-security[common,fsqla]>=5.8.1",
+    "flask-sqlalchemy>=3.1,<4",
+    "flask-wtf>=1.2,<2",
+    "pyjwt>=2.13.0",
+    "pyotp>=2.10.0",
+    "pyqrcode>=1.2.1",
+    "pytest>=8.4,<10",
+    "python-dotenv>=1.0,<2",
+]
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = ["--import-mode=importlib"]
