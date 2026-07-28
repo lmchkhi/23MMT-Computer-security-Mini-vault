@@ -53,6 +53,7 @@ class MiniVaultCore:
             "kdf": "argon2id",
             "kdf_salt_b64": base64.b64encode(salt).decode('utf-8'),
             "encrypted_dek_b64": base64.b64encode(combined_encrypted_dek).decode('utf-8'),
+            "status": "locked"
         }
         
         save_vault_state(self.state_file, vault_data)
@@ -64,7 +65,7 @@ class MiniVaultCore:
         if state is None:
             raise ValueError("Vault chưa được khởi tạo!")
         
-        if not self.is_locked:
+        if state.get('status') != 'locked' and not self.is_locked:
             print("Vault hiện đang không bị khóa.")
             return
 
