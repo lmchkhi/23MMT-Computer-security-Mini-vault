@@ -2,28 +2,46 @@ import json
 import os
 import base64
 import datetime
+from flask import g
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from src.storage.kv.models import KVSecret
 from src.app import db
+from src.storage import AuthSession
+from .access_control import authorize_secret_path
+from src.core.vault import vault_obj, MiniVaultCore
+# from .errors import KvAccessError
 
 class KVEngine:
-    def __init__(self, core_vault):
+    def __init__(self, core_vault: MiniVaultCore | None = None):
         """Nhận vào instance của MiniVaultCore để lấy DEK và trạng thái khóa"""
+        if core_vault is None:
+            core_vault = vault_obj
         self.core = core_vault
 
+    def check_auth(self, token):
+        session = AuthSession.query.filter_by(token_hash=token).first()
+        if not session:
+            return False
+        if session.user_id != g.auth_user.id:
+            return False
+        return True
+    
     def write(self, path: str, data: dict, token: str) -> dict:
         """Mã hóa payload JSON và ghi xuống cơ sở dữ liệu"""
         if self.core.is_locked:
             raise ValueError("VAULT_LOCKED")
-            
-        # Lưu ý: Phần kiểm tra token thuộc Task 1.2, sẽ được nhóm bổ sung sau.
+        if not self.check_auth(token):
+            raise ValueError("INVALID_TOKEN")
+        # If the user does not have the correct email then this will raise an error (KvAccessError)
+        authorize_secret_path(path, g.auth_user.email)
+
             
         # 1. Chuyển JSON thành bytes và tạo Nonce (12 bytes cho GCM)
         payload_bytes = json.dumps(data).encode('utf-8')
         nonce = os.urandom(12)
         
         # 2. Mã hóa bằng DEK
-        aesgcm = AESGCM(self.core.dek)
+        aesgcm = AESGCM(self.core.dek) # type: ignore
         encrypted_data = aesgcm.encrypt(nonce, payload_bytes, associated_data=None)
         
         # Thư viện cryptography tự động nối tag (16 bytes) vào cuối ciphertext.
@@ -60,7 +78,11 @@ class KVEngine:
         """Đọc và giải mã dữ liệu từ cơ sở dữ liệu"""
         if self.core.is_locked:
             raise ValueError("VAULT_LOCKED")
-            
+        if not self.check_auth(token):
+            raise ValueError("INVALID_TOKEN")        
+        # If the user does not have the correct email then this will raise an error (KvAccessError)
+        authorize_secret_path(path, g.auth_user.email)
+
         # 1. Truy vấn DB
         secret = KVSecret.query.filter_by(path=path).first()
         if not secret:
@@ -73,7 +95,7 @@ class KVEngine:
         
         # 3. Nối ciphertext và tag lại để thư viện xử lý
         encrypted_data = ciphertext + tag
-        aesgcm = AESGCM(self.core.dek)
+        aesgcm = AESGCM(self.core.dek) # type: ignore
         
         try:
             # Nếu bản mã hoặc tag bị thay đổi, dòng này sẽ quăng lỗi
@@ -86,11 +108,17 @@ class KVEngine:
         """Xóa vĩnh viễn bản ghi khỏi cơ sở dữ liệu"""
         if self.core.is_locked:
             raise ValueError("VAULT_LOCKED")
-            
+        if not self.check_auth(token):
+            raise ValueError("INVALID_TOKEN")        
+        # If the user does not have the correct email then this will raise an error (KvAccessError)
+        authorize_secret_path(path, g.auth_user.email)
+        
         secret = KVSecret.query.filter_by(path=path).first()
         if secret:
             db.session.delete(secret)
             db.session.commit()
-            
+        else:
+            return {'status': 'No key found'}
         return {"status": "deletion confirmation"}
     
+kv_obj = KVEngine()

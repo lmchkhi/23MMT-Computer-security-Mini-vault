@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from src.app import db
-
+from sqlalchemy.orm import mapped_column
 class KVSecret(db.Model):
     __tablename__ = 'kv_secrets'
     

@@ -34,14 +34,19 @@ def create_app(config=None) -> Flask:
     from src.auth import auth_bp
     from src.main import main_bf
     from src.core.vault_admin import admin_vault_bf
+    from src.kv import kv_access_api_bp, kv_access_web_bp
     # Register other blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bf)
     app.register_blueprint(admin_vault_bf, url_prefix='/admin')
-    
+    app.register_blueprint(kv_access_web_bp)
+    app.register_blueprint(kv_access_api_bp)
     @app.get("/health")
-    def health() -> tuple[dict[str, str], int]:
-        return {"status": "ok", "feature": "0.2-user-auth"}, 200
+    def health() -> tuple[dict[str, object], int]:
+        return {
+            "status": "ok",
+            "features": ["0.2-user-auth", "1.2-kv-access-control", "2.2-transit"],
+        }, 200
     # Connecting other extension to app
     db.init_app(app)
     csrf.init_app(app)
