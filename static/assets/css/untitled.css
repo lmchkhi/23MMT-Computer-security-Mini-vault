@@ -1,0 +1,5 @@
+.qr-max-size {
+  max-height: min(min(75vh, 75vw), 500px) ;
+  max-width: min(min(75vh, 75vw), 500px) ;
+}
+

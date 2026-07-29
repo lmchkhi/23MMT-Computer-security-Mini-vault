@@ -2,7 +2,7 @@
 
 ## Description
 
-A project about creating a mini vault for storing application secretes
+A project about creating a mini vault for storing application secrets
 
 The vault allow the users to:
 
@@ -43,3 +43,93 @@ StudentID1_StudentID2_StudentID3/
 ├── data/{samples,logs}/
 └── docs/report/
 ```
+
+## API
+
+| Method | Endpoint | Authentication | Input |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register` | None | ? |
+| POST | `/api/auth/login` | None | ? |
+| GET | `/api/auth/me` | Bearer token | ? |
+| POST | `/api/auth/logout` | Bearer token | ? |
+| POST | `/api/kv/access/check` | Bearer token | json (Eg: `{"path":"secret/alice@example.com/db"}`) |
+| POST | `/api/transit/encrypt` | Bearer token | `key_name`, `plaintext_b64` |
+| POST | `/api/transit/decrypt` | Bearer token | `ciphertext` |
+
+Encrypt response:
+
+```json
+{
+  "key_name": "my-key",
+  "ciphertext": "vault:my-key:<base64(nonce+ciphertext+tag)>"
+}
+```
+
+Decrypt response:
+
+```json
+{
+  "key_name": "my-key",
+  "plaintext_b64": "..."
+}
+```
+
+<!-- - **0.2 User authentication**: Argon2id password hashing, opaque 30-minute sessions, five-failure/five-minute lockout.
+- **1.2 KV ownership access control**: fixed `secret/<email>/...` namespace, authorization before storage/crypto, generic cross-user denial, denied-attempt logging.
+- **2.2 Transit encrypt/decrypt**: AES-256-GCM, fresh nonce per encryption, self-describing ciphertext, tamper rejection, locked-vault enforcement, and owner-scoped named-key lookup. -->
+
+## Shared Flask infrastructure
+
+All modules import the same extension objects:
+
+```python
+from src.extensions import db, csrf
+```
+
+Do not create another `SQLAlchemy()` or `CSRFProtect()` instance in Feature 0.1, 1.1, or 2.1.
+
+The app factory registers isolated blueprints:
+
+```python
+init_workspace_ui(app)
+init_auth(app)
+init_kv_access_control(app)
+init_transit_encrypt_decrypt(app)
+```
+
+## Run
+
+```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux/macOS
+source .venv/bin/activate
+
+pip install -r requirements.txt
+cp .env.example .env
+# Change the .env to actual value
+python main.py
+```
+
+**Note**: It is important to set venv folder to this directory. As current default config will use `.venv` location to locate the template and static folder
+
+Open `http://127.0.0.1:5000/register`.
+
+## Tests
+
+```bash
+pytest -q
+```
+<!-- 
+Coverage includes:
+
+- owner path accepted and cross-user path denied/logged;
+- missing token rejected before path authorization;
+- AES-GCM round trips for text, JSON, and arbitrary binary bytes;
+- one-byte ciphertext tampering rejected;
+- malformed/truncated ciphertext rejected;
+- wrong key usage rejected;
+- cross-user named-key use denied;
+- locked vault rejected;
+- UI authentication and rendering. -->

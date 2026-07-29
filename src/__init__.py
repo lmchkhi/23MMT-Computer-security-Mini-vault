@@ -1,0 +1,1 @@
+"""Mini Vault application package."""

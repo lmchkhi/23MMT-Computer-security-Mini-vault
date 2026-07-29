@@ -1,0 +1,42 @@
+{% extends "blank.html"%}
+{% set title = "2FA Setup" %}
+{%block head_css%}
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bss-overrides.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/untitled.css') }}">
+{%endblock%}
+{% block body_start%}
+<body id="page-top">
+{%endblock%}
+
+{% macro form_field(field) %}
+        {{ field(class="form-control form-control-user", placeholder=field.label.text) }}
+        {% if field.errors %}
+            <div class="position-relative">
+                {% for error in field.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+                
+            </div> 
+            
+        {% endif %}
+    
+{% endmacro %}
+
+{% block content %}
+                <div class="container-fluid">
+                    <h3 class="text-dark mb-4">2FA Setup</h3>
+                    <p>Please scan the QR code below to enable 2FA</p>
+                    <div class="row mb-3">
+                        <div class="col">
+                            {{qr_code|safe}}
+                            <form class="user needs-validation" method="POST" novalidate >
+                                {{ form.csrf_token }}
+                                <div class="mb-3">
+                                    {{ form_field(form.tf_code) }}
+                                </div>
+                                <button class="btn btn-primary d-block w-100 btn-user" type="submit">Submit</button>
+                            <!-- <img class="img-fluid aspect-ratio-1x1 qr-max-size" width="60" height="60" src="assets/img/avatars/avatar1.jpeg">-->
+                        </div>
+                    </div>
+                </div>
+{% endblock %}
