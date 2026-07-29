@@ -4,17 +4,21 @@ import base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from src.storage.models import NamedKey
 from src.storage.db import db
-
+from src.core import kv_obj
 class TransitKeyManager:
+    allowed_key_type = (
+        'ENCRYPT_DECRYPT',
+    )
     def __init__(self, core_vault):
         """Nhận vào instance của MiniVaultCore để lấy DEK và trạng thái khóa"""
         self.core = core_vault
 
-    def create_key(self, key_name: str, owner_email: str) -> dict:
+    def create_key(self, key_name: str, owner_email: str, key_usage="ENCRYPT_DECRYPT") -> dict:
         """Tạo khóa AES-256 mới và mã hóa nó bằng DEK trước khi lưu xuống DB"""
         if self.core.is_locked:
             raise ValueError("VAULT_LOCKED")
-            
+        if key_usage not in self.allowed_key_type:
+            raise ValueError("Wrong key usage")
         # Kiểm tra khóa đã tồn tại chưa
         existing_key = NamedKey.query.filter_by(key_name=key_name).first()
         if existing_key:
@@ -26,7 +30,7 @@ class TransitKeyManager:
         # 2. Mã hóa khóa AES đó bằng DEK hiện hành trong bộ nhớ (AES-256-GCM)
         aesgcm = AESGCM(self.core.dek)
         nonce = os.urandom(12)
-        encrypted_key = aesgcm.encrypt(nonce, raw_aes_key, associated_data=None)
+        encrypted_key = aesgcm.encrypt(nonce, raw_aes_key, associated_data=bytes(owner_email, 'ascii'))
 
         # Trộn nonce (12 bytes) + encrypted_key (chứa sẵn tag) và chuyển sang Base64
         combined_encrypted_key = nonce + encrypted_key
@@ -36,7 +40,7 @@ class TransitKeyManager:
         new_key = NamedKey(
             key_name=key_name,
             owner_email=owner_email,
-            key_usage="ENCRYPT_DECRYPT",
+            key_usage=key_usage,
             encrypted_key_material_b64=encrypted_key_material_b64
         )
         db.session.add(new_key)
@@ -80,3 +84,5 @@ class TransitKeyManager:
         db.session.commit()
 
         return {"status": "revoked", "key_name": key_name}
+    
+transit_key_obj = TransitKeyManager(kv_obj)
