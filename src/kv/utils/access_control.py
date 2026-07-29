@@ -7,7 +7,7 @@ from typing import Any, Callable, TypeVar, cast
 
 from flask import current_app, g, request
 
-from src.auth.validation import normalize_email
+from src.auth.utils.validation import normalize_email
 
 from .errors import KvAccessError
 

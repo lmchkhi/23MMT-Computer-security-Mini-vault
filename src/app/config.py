@@ -17,6 +17,8 @@ class Config:
     AUTH_MAX_FAILED_ATTEMPTS: int
     AUTH_COOKIE_NAME: str
     AUTH_COOKIE_SECURE: bool
+    ENABLE_TRANSIT_DEMO_KEY: bool
+    TRANSIT_MAX_PLAINTEXT_BYTES: int
     
 @dataclass
 class DefaultConfig(Config):
@@ -33,6 +35,8 @@ class DefaultConfig(Config):
     AUTH_MAX_FAILED_ATTEMPTS = 5
     AUTH_COOKIE_NAME = "mini_vault_session"
     AUTH_COOKIE_SECURE = False
+    ENABLE_TRANSIT_DEMO_KEY= False
+    TRANSIT_MAX_PLAINTEXT_BYTES= 1024 * 1024
     
 @dataclass
 class TestConfig:
