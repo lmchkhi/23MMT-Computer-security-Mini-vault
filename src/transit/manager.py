@@ -2,9 +2,9 @@ import os
 import secrets
 import base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from src.storage.models import NamedKey
-from src.storage.db import db
-from src.core import kv_obj
+from src.storage.kv.models import NamedKey
+from src.app import db
+from src.core import vault_obj
 class TransitKeyManager:
     allowed_key_type = (
         'ENCRYPT_DECRYPT',
@@ -85,4 +85,4 @@ class TransitKeyManager:
 
         return {"status": "revoked", "key_name": key_name}
     
-transit_key_obj = TransitKeyManager(kv_obj)
+transit_key_obj = TransitKeyManager(vault_obj)
