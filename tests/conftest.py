@@ -4,12 +4,11 @@ import os
 
 import pytest
 
-from src.transit.key_store import wrap_key_material
-from src.transit.models import TransitNamedKey
+
 
 from src.app import create_app, db
 from src.app.config import DefaultConfig
-
+from src.transit.utils import transit_key_obj
 @pytest.fixture()
 def clock():
     return {"now": 1_700_000_000}
@@ -100,26 +99,27 @@ def seed_named_key(app, clock):
         key_name: str = "my-key",
         key_usage: str = "ENCRYPT_DECRYPT",
         key_material: bytes | None = None,
-    ) -> TransitNamedKey:
+    ) -> None:
         material = key_material or os.urandom(32)
-        with app.app_context():
-            record = TransitNamedKey(
-                owner_email=owner_email,
-                key_name=key_name,
-                key_usage=key_usage,
-                encrypted_key_material_b64=wrap_key_material(
-                    owner_email=owner_email,
-                    key_name=key_name,
-                    key_usage=key_usage,
-                    key_material=material,
-                ),
-                created_at=clock["now"],
-                updated_at=clock["now"],
-                revoked_at=None,
-            )
-            db.session.add(record)
-            db.session.commit()
-            record_id = record.id
-        return record_id
+        transit_key_obj.create_key(key_name, owner_email, key_usage)
+        # with app.app_context():
+        #     record = TransitNamedKey(
+        #         owner_email=owner_email,
+        #         key_name=key_name,
+        #         key_usage=key_usage,
+        #         encrypted_key_material_b64=wrap_key_material(
+        #             owner_email=owner_email,
+        #             key_name=key_name,
+        #             key_usage=key_usage,
+        #             key_material=material,
+        #         ),
+        #         created_at=clock["now"],
+        #         updated_at=clock["now"],
+        #         revoked_at=None,
+        #     )
+        #     db.session.add(record)
+        #     db.session.commit()
+        #     record_id = record.id
+        # return record_id
 
     return seed

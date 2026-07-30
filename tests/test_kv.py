@@ -3,7 +3,7 @@ import os
 from flask import Flask
 from src.app import db
 from src.core.vault import MiniVaultCore
-from src.kv.engine import KVEngine
+from src.kv.utils.engine import KVEngine
 from src.storage.kv.models import KVSecret
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def kv_engine(app_env):
     if os.path.exists(core.state_file):
         os.remove(core.state_file)
 
-def test_kv_round_trip(kv_engine):
+def test_kv_round_trip(kv_engine, login):
     """Tiêu chí nghiệm thu 1: Ghi sau đó đọc phải trả về chính xác dữ liệu gốc (round-trip test)"""
     test_path = "secret/alice@example.com/db"
     test_data = {"username": "admin", "password": "super_secret_password"}

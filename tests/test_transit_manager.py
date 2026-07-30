@@ -4,7 +4,7 @@ import os
 from flask import Flask
 from src.app import db
 from src.core.vault import MiniVaultCore
-from src.transit.manager import TransitKeyManager
+from src.transit.utils.manager import TransitKeyManager
 from src.storage.kv.models import NamedKey
 
 @pytest.fixture
