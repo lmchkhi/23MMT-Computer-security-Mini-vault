@@ -1,0 +1,45 @@
+{% extends "blank.html" %}
+{% set title = "Profile" %}
+{% block content %}
+    <h1>Encrypt content with key</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="alert alert-{{ messages[0][0]}}" role="alert">
+            <center>
+                {{ messages[0][1]}}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </center>
+        </div>
+    {% endif %}
+    {% endwith%}
+    <form method="post" action="{{ url_for('transit_web.decrypt') }}" novalidate>
+        {{ decrypt_form.hidden_tag() }}
+        <div class="mb-3">
+            {{ decrypt_form.ciphertext.label(class="form-label") }}
+            {{ decrypt_form.ciphertext(class="form-control", rows="9", placeholder="vault:my-key:...") }}
+            {% for error in decrypt_form.ciphertext.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+        </div>
+        {{ decrypt_form.submit(class="btn btn-primary") }}
+    </form>
+    {% if decrypted_result %}
+        <div class="result-panel result-allowed transit-output">
+            <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                <strong>Plaintext was encrypted with key {{ decrypted_result.key_name }}</strong>
+            </div>
+            {% if decrypted_result.is_utf8 %}
+                <label class="form-label" for="decrypted-text">UTF-8 preview</label>
+                <textarea id="decrypted-text" class="form-control mb-3" readonly>{{ decrypted_result.plaintext_text }}</textarea>
+            {% else %}
+                <p class="text-secondary">The recovered bytes are not valid UTF-8. Use the base64 output below.</p>
+            {% endif %}
+            <label class="form-label" for="decrypted-base64">Plaintext base64</label>
+            <textarea id="decrypted-base64" class="form-control" readonly>{{ decrypted_result.plaintext_b64 }}</textarea>
+        </div>
+    {% endif %}
+    <!--Back button-->
+    <div class="mt-3">
+        <button class="btn btn-secondary" type="button" onclick="window.location.href='{{ url_for('transit_web.list_key') }}'">
+            Back
+        </button>
+    </div>
+{% endblock %}

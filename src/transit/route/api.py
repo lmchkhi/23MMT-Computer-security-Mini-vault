@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from flask import Blueprint, g, request
 
-from src.auth import require_auth
+from src.auth.utils import require_auth
 
-from .errors import TransitError
-from .service import decrypt_for_user, encrypt_for_user
+from src.transit.utils import TransitError, decrypt_for_user, encrypt_for_user
 
 transit_api_bp = Blueprint("transit_api", __name__)
 

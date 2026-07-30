@@ -168,7 +168,7 @@ def tf_login():
                 response = redirect(get_valid_next_url(next_url) or url_for("main.index"))
                 response = _user_login(user, response)
                 response.delete_cookie('email')
-                
+                response.delete_cookie("otp-login-token")
                 return response
         flash("Invalid TOTP", category='danger')
     if vault_obj.is_locked:

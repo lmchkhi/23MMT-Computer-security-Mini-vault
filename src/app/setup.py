@@ -35,12 +35,17 @@ def create_app(config=None) -> Flask:
     from src.main import main_bf
     from src.core.vault_admin import admin_vault_bf
     from src.kv import kv_access_api_bp, kv_access_web_bp
+    from src.transit import transit_api_bp, transit_web_bp
     # Register other blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bf)
     app.register_blueprint(admin_vault_bf, url_prefix='/admin')
     app.register_blueprint(kv_access_web_bp)
     app.register_blueprint(kv_access_api_bp)
+    app.register_blueprint(transit_api_bp, url_prefix="/api/transit")
+    app.register_blueprint(transit_web_bp, url_prefix="/transit")
+
+    
     @app.get("/health")
     def health() -> tuple[dict[str, object], int]:
         return {

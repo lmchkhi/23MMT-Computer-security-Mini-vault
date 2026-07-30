@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 import base64
 import binascii
 import os
+import re
 from dataclasses import dataclass
 
 from cryptography.exceptions import InvalidTag
@@ -10,7 +9,10 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from flask import current_app
 
 from .errors import TransitError
-from .key_store import get_owned_encryption_key, unwrap_key_material
+from .manager import transit_key_obj
+
+# from .key_store import get_owned_encryption_key, unwrap_key_material
+
 
 
 @dataclass(frozen=True)
@@ -43,12 +45,13 @@ def _payload_limit() -> int:
     return int(current_app.config.get("TRANSIT_MAX_PLAINTEXT_BYTES", 1024 * 1024))
 
 
-def _ciphertext_aad(key_name: str) -> bytes:
-    return f"mini-vault:transit:v1:{key_name}".encode("utf-8")
+def _ciphertext_aad(key_name: str, owner_email) -> bytes:
+    return f"mini-vault:transit:v1:{key_name}:{owner_email}".encode("utf-8")
+
 
 
 def encrypt_for_user(
-    *, owner_email: object, key_name: object, plaintext_b64: object
+    *, owner_email, key_name, plaintext_b64: object
 ) -> EncryptResult:
     plaintext = _strict_b64decode(plaintext_b64, field_name="plaintext_b64")
     if len(plaintext) > _payload_limit():
@@ -57,19 +60,28 @@ def encrypt_for_user(
             "Plaintext exceeds the configured size limit",
             413,
         )
-
-    record = get_owned_encryption_key(owner_email, key_name)
-    key_material = unwrap_key_material(record)
+    try:
+        key = transit_key_obj.read_key(
+            owner_email=owner_email,
+            key_name=key_name,
+            key_usage='ENCRYPT_DECRYPT'
+        )
+    except ValueError:
+        raise TransitError(
+            'KEY ERROR',
+            'Unable to retrive key',
+            409)
+        
     nonce = os.urandom(12)
-    encrypted = AESGCM(key_material).encrypt(
+    encrypted = AESGCM(key).encrypt(
         nonce,
         plaintext,
-        _ciphertext_aad(record.key_name),
+        _ciphertext_aad(key_name,owner_email),
     )
     encoded = base64.b64encode(nonce + encrypted).decode("ascii")
     return EncryptResult(
-        key_name=record.key_name,
-        ciphertext=f"vault:{record.key_name}:{encoded}",
+        key_name=key_name,
+        ciphertext=f"vault:{key_name}:{encoded}",
     )
 
 
@@ -106,18 +118,18 @@ def _parse_ciphertext(value: object) -> tuple[str, bytes]:
 
 
 def decrypt_for_user(
-    *, owner_email: object, ciphertext: object
+    *, owner_email, ciphertext: object
 ) -> DecryptResult:
     key_name, combined = _parse_ciphertext(ciphertext)
-    record = get_owned_encryption_key(owner_email, key_name)
-    key_material = unwrap_key_material(record)
+    key = transit_key_obj.read_key(key_name, "ENCRYPT_DECRYPT", owner_email)
+    
     nonce, encrypted = combined[:12], combined[12:]
 
     try:
-        plaintext = AESGCM(key_material).decrypt(
+        plaintext = AESGCM(key).decrypt(
             nonce,
             encrypted,
-            _ciphertext_aad(record.key_name),
+            _ciphertext_aad(key_name,owner_email),
         )
     except InvalidTag as exc:
         raise TransitError(
@@ -127,7 +139,7 @@ def decrypt_for_user(
         ) from exc
 
     return DecryptResult(
-        key_name=record.key_name,
+        key_name=key_name,
         plaintext_b64=base64.b64encode(plaintext).decode("ascii"),
         plaintext=plaintext,
     )
