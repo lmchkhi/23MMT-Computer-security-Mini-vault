@@ -2,7 +2,7 @@ from flask import Blueprint, flash, g, render_template, redirect, url_for,reques
 from src.auth.utils import require_browser_auth
 from src.storage.kv.models import KVSecret
 from src.kv.form import SecretForm
-from src.kv.utils.access_control import parse_secret_path, KvAccessError
+from src.kv.utils.access_control import authorize_secret_path, parse_secret_path, KvAccessError
 from src.kv.utils.engine import kv_obj
 from sqlalchemy import select
 from src.app import db
@@ -12,6 +12,40 @@ kv_access_web_bp = Blueprint(
     __name__,
     template_folder="templates",
 )
+
+
+
+@kv_access_web_bp.route("/kv/access-control/", methods=["GET", "POST"])
+@require_browser_auth
+def index():
+    form = SecretForm()
+    result = None
+    if request.method == "GET":
+        form.path.data = f"secret/{g.auth_user.email}/db"
+    elif form.validate_on_submit():
+        try:
+            authorized = authorize_secret_path(form.path.data, g.auth_user.email)
+            result = {
+                "allowed": True,
+                "path": authorized.path,
+                "code": "AUTHORIZED",
+                "message": "Path belongs to the authenticated user.",
+            }
+        except KvAccessError as exc:
+            result = {
+                "allowed": False,
+                "path": None,
+                "code": exc.code,
+                "message": exc.message,
+            }
+
+    return render_template(
+        "kv/access_control.html",
+        form=form,
+        result=result,
+        user=g.auth_user,
+        active_page="kv",
+    )
 
 @kv_access_web_bp.route("/add-secret", methods=['GET', "POST"])
 @require_browser_auth

@@ -100,8 +100,10 @@ def seed_named_key(app, clock):
         key_usage: str = "ENCRYPT_DECRYPT",
         key_material: bytes | None = None,
     ) -> None:
-        material = key_material or os.urandom(32)
-        transit_key_obj.create_key(key_name, owner_email, key_usage)
+        # The manager uses Flask-SQLAlchemy, so seeding must run inside the
+        # application context.  The previous fixture called it outside context.
+        with app.app_context():
+            transit_key_obj.create_key(key_name, owner_email, key_usage)
         # with app.app_context():
         #     record = TransitNamedKey(
         #         owner_email=owner_email,
