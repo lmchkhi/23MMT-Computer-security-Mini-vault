@@ -1,6 +1,7 @@
 import os
 from src.core.vault import vault_obj, VAULT_DATA_FILE
 from src.storage.utils import drop_database, init_database, db, create_app
+from src.storage.kv.models import NamedKey
 from sqlalchemy import select
 def reinit():
     root = os.environ['VIRTUAL_ENV']

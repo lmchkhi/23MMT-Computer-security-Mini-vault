@@ -30,7 +30,7 @@
 .page-heading h1 { letter-spacing: -.045em; font-size: clamp(2.25rem, 5vw, 4rem); }
 .page-heading p { color: var(--mv-muted); font-size: 1.05rem; }
 .workspace-card {
-  background: linear-gradient(145deg, rgba(17,23,36,.98), rgba(13,19,30,.98));
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.98));
   border: 1px solid var(--mv-border);
   border-radius: 1.25rem;
   padding: clamp(1.25rem, 3vw, 2rem);
@@ -38,10 +38,10 @@
 }
 .workspace-card h2 { font-size: 1.2rem; letter-spacing: -.02em; }
 .workspace-card .form-select,
-.workspace-card textarea.form-control { color: var(--mv-text); background-color: rgba(255,255,255,.045); border-color: var(--mv-border); }
+.workspace-card textarea.form-control { color: var(--mv-text); background-color: rgb(255, 255, 255); border-color: var(--mv-border); }
 .workspace-card .form-select:focus,
 .workspace-card textarea.form-control:focus { border-color: var(--mv-accent); box-shadow: 0 0 0 .25rem rgba(109,124,255,.15); }
-.workspace-card .form-select option { color: #111; }
+.workspace-card .form-select option { color: #000000; }
 .feature-tag { display: inline-flex; gap: .4rem; align-items: center; color: var(--mv-accent-2); font-size: .72rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
 .feature-tag::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; }
 .result-panel { margin-top: 1rem; padding: 1rem; border: 1px solid var(--mv-border); border-radius: .9rem; background: rgba(255,255,255,.035); }

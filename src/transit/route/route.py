@@ -3,13 +3,13 @@ from __future__ import annotations
 import base64
 import binascii
 
-from flask import Blueprint, current_app, flash, g, redirect, render_template, url_for
+from flask import Blueprint, current_app, flash, g, redirect, render_template, url_for,abort
 
 from src.auth.utils.decorators import require_browser_auth
 from src.transit.form import BootstrapKeyForm, CreateKeyForm, DecryptForm, EncryptForm
 from src.transit.utils import decrypt_for_user, encrypt_for_user, transit_key_obj
 from src.transit.utils.errors import TransitError
-
+from src.core import vault_obj
 transit_web_bp = Blueprint("transit_web", __name__, template_folder="templates")
 
 
