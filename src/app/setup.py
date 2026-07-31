@@ -39,8 +39,7 @@ def create_app(config=None) -> Flask:
     from src.kv import kv_access_api_bp, kv_access_web_bp
     from src.main import main_bf
     from src.transit import transit_api_bp, transit_web_bp
-    from src.workspace import init_workspace_ui
-
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bf)
     app.register_blueprint(admin_vault_bf, url_prefix="/admin")
