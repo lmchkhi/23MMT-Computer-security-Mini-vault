@@ -1,12 +1,11 @@
 from flask import Blueprint, flash, g, render_template, redirect, url_for,request,abort
 from src.auth.utils import require_browser_auth
 from src.storage.kv.models import KVSecret
-from src.kv.form import SecretForm
+from src.kv.form import SecretForm,PathCheckForm
 from src.kv.utils.access_control import authorize_secret_path, parse_secret_path, KvAccessError
-from src.kv.utils.engine import kv_obj
+from src.kv.utils.engine import kv_obj, vault_obj
 from sqlalchemy import select
 from src.app import db
-from src.core import vault_obj
 kv_access_web_bp = Blueprint(
     "kv_access_web",
     __name__,
@@ -19,13 +18,15 @@ kv_access_web_bp = Blueprint(
 @require_browser_auth
 def index():
     
-    form = SecretForm()
+    form = PathCheckForm()
     result = None
+    
     if request.method == "GET":
         form.path.data = f"secret/{g.auth_user.email}/db"
+        
     elif form.validate_on_submit():
         if vault_obj.is_locked:
-                abort(404)
+            abort(404)
         try:
             authorized = authorize_secret_path(form.path.data, g.auth_user.email)
             result = {

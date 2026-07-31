@@ -27,4 +27,22 @@ class SecretForm(FlaskForm):
             parse_secret_path(path.data)
         except KvAccessError:
             raise ValidationError("Path is invalid")
+
+class PathCheckForm(FlaskForm):
+    """
+    Defines the structure for adding/editing secrets.
+    """
+    path = StringField(
+        label="Secret Path",
+        validators=[
+            DataRequired(),
+        ],
         
+    )
+    submit = SubmitField(label="Submit")
+    
+    def validate_path(self, path):
+        try:
+            parse_secret_path(path.data)
+        except KvAccessError:
+            raise ValidationError("Path is invalid")
