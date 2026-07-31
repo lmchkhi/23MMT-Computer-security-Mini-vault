@@ -59,7 +59,7 @@ def require_browser_auth(view: F) -> F:
             
             next_path = request.full_path if request.query_string else request.path
             response = redirect(
-                url_for("auth.login_alias", next=next_path)
+                url_for("auth.login", next=next_path)
             )
             response.delete_cookie(cookie_name, path="/")
             return response

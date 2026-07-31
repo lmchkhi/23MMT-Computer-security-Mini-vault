@@ -88,22 +88,21 @@ class KVEngine:
         if not secret:
             raise ValueError("NOT_FOUND")
             
+        # 2. Giải mã Base64
+        nonce = base64.b64decode(secret.nonce_b64)
+        ciphertext = base64.b64decode(secret.ciphertext_b64)
+        tag = base64.b64decode(secret.tag_b64)
+        
+        # 3. Nối ciphertext và tag lại để thư viện xử lý
+        encrypted_data = ciphertext + tag
+        aesgcm = AESGCM(self.core.dek) # type: ignore
+        
         try:
-            # Treat malformed base64, an altered nonce/ciphertext/tag, and an
-            # invalid JSON payload as the same authenticated-storage failure.
-            nonce = base64.b64decode(secret.nonce_b64, validate=True)
-            ciphertext = base64.b64decode(secret.ciphertext_b64, validate=True)
-            tag = base64.b64decode(secret.tag_b64, validate=True)
-            encrypted_data = ciphertext + tag
-            aesgcm = AESGCM(self.core.dek)  # type: ignore[arg-type]
-            decrypted_bytes = aesgcm.decrypt(
-                nonce, encrypted_data, associated_data=None
-            )
-            return json.loads(decrypted_bytes.decode("utf-8"))
-        except Exception as exc:
-            raise ValueError(
-                "Lỗi: Dữ liệu đã bị giả mạo hoặc Tag xác thực không khớp."
-            ) from exc
+            # Nếu bản mã hoặc tag bị thay đổi, dòng này sẽ quăng lỗi
+            decrypted_bytes = aesgcm.decrypt(nonce, encrypted_data, associated_data=None)
+            return json.loads(decrypted_bytes.decode('utf-8'))
+        except Exception:
+            raise ValueError("Lỗi: Dữ liệu đã bị giả mạo hoặc Tag xác thực không khớp.")
 
     def delete(self, path: str, token: str) -> dict:
         """Xóa vĩnh viễn bản ghi khỏi cơ sở dữ liệu"""

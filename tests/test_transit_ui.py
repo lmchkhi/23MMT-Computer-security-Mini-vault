@@ -26,6 +26,7 @@ def test_transit_ui_renders_consistently_and_lists_owned_key(
     assert page.status_code == 200
     assert b"Use keys without receiving keys" in page.data
     assert b"ui-key" in page.data
+    assert b"KV ownership" in page.data
 
 
 def test_transit_ui_encrypts_and_decrypts_text(

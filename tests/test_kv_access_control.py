@@ -4,8 +4,8 @@ import logging
 
 import pytest
 
-from src.kv.utils.access_control import authorize_secret_path, parse_secret_path
-from src.kv.utils.errors import KvAccessError
+from src.kv.access_control import authorize_secret_path, parse_secret_path
+from src.kv.errors import KvAccessError
 
 
 def test_owner_path_is_authorized_and_normalized(app):
