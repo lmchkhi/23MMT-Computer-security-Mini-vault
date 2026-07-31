@@ -16,7 +16,9 @@ class SecretForm(FlaskForm):
     )
     secret_value = PasswordField(
         label="Secret Value",
-        
+        validators=[
+                    DataRequired(),
+                ],
     )
     submit = SubmitField(label="Submit")
     
