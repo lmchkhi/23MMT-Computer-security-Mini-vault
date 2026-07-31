@@ -17,3 +17,4 @@ def reinit():
     if r:
         drop_database()
     init_database()
+reinit()
