@@ -81,10 +81,11 @@ def register():
             )
             flash("Account created. You can log in now.", "success")
             return redirect(url_for("auth.login"))
-        except AuthError as e:
-            # if e.code == "VALIDATION_ERROR":
-            #     _append_field_errors(form, e)
-            pass
+        except AuthError as exc:
+            if exc.code == "VALIDATION_ERROR":
+                _append_field_errors(form, exc)
+            else:
+                flash(exc.message, "danger")
 
     return render_template("register.html", form=form)
 
@@ -162,3 +163,15 @@ def logout():
     response.delete_cookie(current_app.config["AUTH_COOKIE_NAME"], path="/")
     flash("You have been logged out.", "success")
     return response
+
+# Compatibility URLs used by the merged Feature 1.2/2.2 UI tests.  Keep the
+# original short URLs so existing links continue to work.
+auth_bp.add_url_rule(
+    "/auth/register", endpoint="register_alias", view_func=register, methods=["GET", "POST"]
+)
+auth_bp.add_url_rule(
+    "/auth/login", endpoint="login_alias", view_func=login, methods=["GET", "POST"]
+)
+auth_bp.add_url_rule(
+    "/auth/logout", endpoint="logout_alias", view_func=logout, methods=["GET"]
+)

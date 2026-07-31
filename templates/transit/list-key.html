@@ -1,0 +1,97 @@
+{% extends "blank.html" %}
+
+{% set title='Secrets' %}
+{% block body_start%}
+<body id="page-top">
+{% endblock %}
+{% block content %}
+                    <h3 class="text-dark mb-4">Keys</h3>
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <p class="text-primary m-0 fw-bold">List of keys</p>
+                        </div>
+                        <div class="card-body">
+                            <div>
+                                <button class="btn btn-primary" type="button" onclick="window.location.href='{{ url_for('transit_web.create_key', key_type='enc') }}'">Add key for encrypt and decrypt</button>
+                                {% if key_list %}
+                                <button class="btn btn-primary" type="button" onclick="window.location.href='{{ url_for('transit_web.encrypt') }}'">Encrypt</button>
+                                <button class="btn btn-primary" type="button" onclick="window.location.href='{{ url_for('transit_web.decrypt') }}'">Decrypt</button>
+                                {% endif%}
+                            </div>
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <div class="alert alert-{{ messages[0][0]}}" role="alert">
+                                    <center>
+                                        {{ messages[0][1]}}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </center>
+                                </div>
+                            {% endif %}
+                            {% endwith%}
+                            <!--
+                            <div class="row">
+                                <div class="col-md-6 text-nowrap">
+                                    <div id="dataTable_length" class="dataTables_length" aria-controls="dataTable"><label class="form-label">Show&nbsp;<select class="d-inline-block form-select form-select-sm">
+                                                <option value="10" selected="">10</option>
+                                                <option value="25">25</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                            </select>&nbsp;</label></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-md-end dataTables_filter" id="dataTable_filter"><label class="form-label"><input type="search" class="form-control form-control-sm" aria-controls="dataTable" placeholder="Search"></label></div>
+                                </div>
+                            </div>
+                            -->
+                            <div class="table-responsive mt-2 table" id="dataTable" role="grid" aria-describedby="dataTable_info">
+                                <table class="table my-0" id="dataTable">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Name</th>
+                                            <th>Key usage</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for key in key_list %}
+                                        <tr>
+                                            <td>{{ loop.index }}</td>
+                                            <td>{{ key.key_name }}</td>
+                                            {% if key.key_usage == "ENCRYPT_DECRYPT"%}
+                                            <td>Encrypt and decrypt</td>
+                                            {% else %}
+                                            <td>Sign and verify</td>
+                                            {% endif %}
+                                            <td><form method='post' action="{{ url_for('transit_web.revoke_key', key_name=key.key_name) }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button class="btn btn-danger" type="submit">Revoke</button>
+                                            </form></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr></tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <!--
+                            <div class="row">
+                                <div class="col-md-6 align-self-center">
+                                    <p id="dataTable_info" class="dataTables_info" role="status" aria-live="polite">Showing 1 to 10 of 27</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <nav class="d-lg-flex justify-content-lg-end dataTables_paginate paging_simple_numbers">
+                                        <ul class="pagination">
+                                            <li class="page-item disabled"><a class="page-link" aria-label="Previous" href="#"><span aria-hidden="true">«</span></a></li>
+                                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                            <li class="page-item"><a class="page-link" aria-label="Next" href="#"><span aria-hidden="true">»</span></a></li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                            -->
+                        </div>
+                    </div>
+{% endblock %}

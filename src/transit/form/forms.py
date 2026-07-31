@@ -1,7 +1,37 @@
 from flask_wtf import FlaskForm
-from wtforms import SelectField, StringField, SubmitField, TextAreaField
+from wtforms import SelectField, StringField, SubmitField, TextAreaField, ValidationError
 from wtforms.validators import DataRequired, Length
+from src.transit.utils import validate_key_name, TransitError
 
+class CreateKeyForm(FlaskForm):
+    key_name = StringField(
+        "Key Name",
+        validators=[
+            DataRequired(),
+            Length(1,64)],
+        )
+    submit = SubmitField("Create")
+    def validate_key_name(self, key_name):
+        try: 
+            validate_key_name(key_name.data)
+        except TransitError:
+            raise ValidationError("Invalid key name. Key name may only include letters, numbers, dot, dash, or underscore ")
+            
+class CreateSignKeyForm(FlaskForm):
+    key_name = StringField(
+        "Key Name",
+        validators=[
+            DataRequired(),
+            Length(1,64)],
+        )
+    
+    submit = SubmitField("Create")
+    def validate_key_name(self, key_name):
+        try: 
+            validate_key_name(key_name.data)
+        except TransitError:
+            raise ValidationError("Invalid key name. Key name may only include letters, numbers, dot, dash, or underscore ")
+            
 
 class EncryptForm(FlaskForm):
     key_name = SelectField(

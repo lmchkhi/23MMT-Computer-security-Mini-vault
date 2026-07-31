@@ -1,0 +1,129 @@
+{% extends "blank.html" %}
+{% block head_css%}
+<link rel="stylesheet" href="{{ url_for('static', filename='workspace/workspace.css') }}">
+{% endblock %}
+{% block title %}Transit encrypt/decrypt · Mini Vault{% endblock %}
+{% block content %}
+<section class="page-heading">
+    <h3 class="mt-3">Use keys without receiving keys.</h3>
+    <p>Mini Vault accepts base64 plaintext, uses an owner-bound named AES-256 key in memory, and returns a self-describing authenticated ciphertext.</p>
+</section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="alert alert-{{ messages[0][0]}}" role="alert">
+            <center>
+                {{ messages[0][1]}}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </center>
+        </div>
+    {% endif %}
+    {% endwith%}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <section class="workspace-card" data-tab-group data-active-tab="{{ active_tab }}">
+            <div class="tab-buttons" role="tablist">
+                <button type="button" data-tab-target="encrypt">Encrypt</button>
+                <button type="button" data-tab-target="decrypt">Decrypt</button>
+            </div>
+
+            <div data-tab-panel="encrypt">
+                <h2>Encrypt data</h2>
+                {% if not keys %}
+                    <div class="empty-state">
+                        <h3 class="h5">No encryption key yet</h3>
+                        <p>Feature 2.2 consumes keys created by Feature 2.1. Merge that branch or enable the isolated development bootstrap below.</p>
+                        {% if demo_key_enabled %}
+                            <form method="post" action="{{ url_for('transit_web.dev_bootstrap_key') }}" class="mx-auto" style="max-width: 28rem;">
+                                {{ bootstrap_form.hidden_tag() }}
+                                {{ bootstrap_form.key_name(class="form-control mb-2", placeholder="demo-key") }}
+                                {{ bootstrap_form.submit(class="btn btn-outline-light") }}
+                            </form>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <form method="post" action="{{ url_for('transit_web.encrypt') }}" novalidate>
+                        {{ encrypt_form.hidden_tag() }}
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                {{ encrypt_form.key_name.label(class="form-label") }}
+                                {{ encrypt_form.key_name(class="form-select form-select-lg") }}
+                            </div>
+                            <div class="col-md-5">
+                                {{ encrypt_form.input_format.label(class="form-label") }}
+                                {{ encrypt_form.input_format(class="form-select form-select-lg") }}
+                            </div>
+                            <div class="col-12">
+                                {{ encrypt_form.plaintext.label(class="form-label") }}
+                                {{ encrypt_form.plaintext(class="form-control", rows="8", placeholder="Text or base64 payload") }}
+                                {% for error in encrypt_form.plaintext.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        {{ encrypt_form.submit(class="btn btn-primary mt-3") }}
+                    </form>
+                {% endif %}
+
+                {% if encrypted_result %}
+                    <div class="result-panel result-allowed transit-output">
+                        <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                            <strong>Authenticated ciphertext · {{ encrypted_result.key_name }}</strong>
+                            <button class="btn btn-sm btn-outline-light copy-button" type="button" data-copy-target="#encrypted-output">Copy</button>
+                        </div>
+                        <textarea id="encrypted-output" class="form-control" readonly>{{ encrypted_result.ciphertext }}</textarea>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div data-tab-panel="decrypt" hidden>
+                <h2>Decrypt and verify</h2>
+                <p class="text-secondary">The embedded key name is parsed from <code>vault:&lt;key_name&gt;:&lt;base64&gt;</code>. A modified nonce, ciphertext, or GCM tag is rejected.</p>
+                <form method="post" action="{{ url_for('transit_web.decrypt') }}" novalidate>
+                    {{ decrypt_form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ decrypt_form.ciphertext.label(class="form-label") }}
+                        {{ decrypt_form.ciphertext(class="form-control", rows="9", placeholder="vault:my-key:...") }}
+                        {% for error in decrypt_form.ciphertext.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+                    {{ decrypt_form.submit(class="btn btn-primary") }}
+                </form>
+
+                {% if decrypted_result %}
+                    <div class="result-panel result-allowed transit-output">
+                        <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                            <strong>Verified plaintext · {{ decrypted_result.key_name }}</strong>
+                            <button class="btn btn-sm btn-outline-light copy-button" type="button" data-copy-target="#decrypted-base64">Copy base64</button>
+                        </div>
+                        {% if decrypted_result.is_utf8 %}
+                            <label class="form-label" for="decrypted-text">UTF-8 preview</label>
+                            <textarea id="decrypted-text" class="form-control mb-3" readonly>{{ decrypted_result.plaintext_text }}</textarea>
+                        {% else %}
+                            <p class="text-secondary">The recovered bytes are not valid UTF-8. Use the base64 output below.</p>
+                        {% endif %}
+                        <label class="form-label" for="decrypted-base64">Plaintext base64</label>
+                        <textarea id="decrypted-base64" class="form-control" readonly>{{ decrypted_result.plaintext_b64 }}</textarea>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <div class="col-lg-4">
+        <section class="workspace-card mb-4">
+            <h2>Available keys</h2>
+            {% if keys %}
+                <div class="security-list mt-3">
+                    {% for key in keys %}
+                        <div><strong>{{ key.key_name }}</strong><br><span>{{ key.key_usage }}</span></div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-secondary mb-0">No active <code>ENCRYPT_DECRYPT</code> key belongs to {{ user.email }}.</p>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}
+{% block body_scripts %}
+<script src="{{ url_for('static', filename='workspace/workspace.js') }}"></script>
+{% endblock %}

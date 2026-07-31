@@ -21,7 +21,6 @@ class SecretForm(FlaskForm):
     submit = SubmitField(label="Submit")
     
     def validate_path(self, path):
-        print(path.data)
         try:
             parse_secret_path(path.data)
         except KvAccessError:
