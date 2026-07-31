@@ -109,6 +109,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 # Change the .env to actual value
+python reinit_all.py
 python main.py
 ```
 
